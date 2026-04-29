@@ -1,0 +1,9 @@
+# statix lint config for nix-env.
+#
+# `ignore` patterns: build artifacts and external work-trees we never
+# hand-edit. Anything statix flags inside `lib/`, `nixos/`, or `flake.nix`
+# is real and should be fixed.
+ignore = [
+  '.direnv',
+  'result',
+]

@@ -1,0 +1,20 @@
+default_layout "default"
+
+show_startup_tips false
+show_release_notes false
+
+theme "catppuccin_mocha"
+
+advanced_mouse_actions true
+
+keybinds {
+    normal {
+        bind "Alt -" { NextSwapLayout; }
+    }
+}
+
+ui {
+    pane_frames {
+        rounded_corners true
+    }
+}

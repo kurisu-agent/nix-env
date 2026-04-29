@@ -1,0 +1,98 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "palette": {
+    "text": "#CDD6F4",
+    "subtext0": "#A6ADC8",
+    "overlay0": "#6C7086",
+    "pink": "#F5C2E7",
+    "mauve": "#CBA6F7",
+    "lavender": "#B4BEFE",
+    "blue": "#89B4FA",
+    "sapphire": "#74C7EC",
+    "sky": "#89DCEB",
+    "teal": "#94E2D5",
+    "green": "#A6E3A1",
+    "yellow": "#F9E2AF",
+    "peach": "#FAB387",
+    "red": "#F38BA8"
+  },
+  "blocks": [
+    {
+      "alignment": "left",
+      "type": "prompt",
+      "segments": [
+        {
+          "type": "os",
+          "style": "plain",
+          "foreground": "p:text",
+          "foreground_templates": [
+            "{{ if eq .Env.NIX_ENV_TYPE \"devcontainer\" }}p:teal{{ end }}",
+            "{{ if eq .Env.NIX_ENV_TYPE \"coder\" }}p:pink{{ end }}",
+            "{{ if eq .Env.NIX_ENV_TYPE \"vm\" }}p:mauve{{ end }}",
+            "{{ if eq .Env.NIX_ENV_TYPE \"docker\" }}p:blue{{ end }}",
+            "{{ if eq .Env.NIX_ENV_TYPE \"local\" }}p:yellow{{ end }}"
+          ],
+          "template": "{{.Icon}} {{ .UserName }}@{{ .HostName }} "
+        },
+        {
+          "type": "path",
+          "style": "plain",
+          "foreground": "p:pink",
+          "template": "{{ .Path }} ",
+          "properties": {
+            "folder_icon": "....",
+            "home_icon": "~",
+            "style": "agnoster_short"
+          }
+        },
+        {
+          "type": "git",
+          "style": "plain",
+          "foreground": "p:lavender",
+          "template": "{{ .HEAD }} ",
+          "properties": {
+            "branch_icon": "",
+            "cherry_pick_icon": "",
+            "commit_icon": "",
+            "fetch_status": true,
+            "fetch_upstream_icon": false,
+            "merge_icon": "",
+            "no_commits_icon": "",
+            "rebase_icon": "",
+            "revert_icon": "",
+            "tag_icon": ""
+          }
+        },
+        {
+          "type": "git",
+          "style": "plain",
+          "foreground": "p:green",
+          "template": "{{ if or (gt .Staging.Added 0) (gt .Working.Untracked 0) }}{{ add .Staging.Added .Working.Untracked }}{{ end }}",
+          "properties": { "fetch_status": true }
+        },
+        {
+          "type": "git",
+          "style": "plain",
+          "foreground": "p:yellow",
+          "template": "{{ if or (gt .Staging.Modified 0) (gt .Working.Modified 0) }}{{ add .Staging.Modified .Working.Modified }}{{ end }}",
+          "properties": { "fetch_status": true }
+        },
+        {
+          "type": "git",
+          "style": "plain",
+          "foreground": "p:red",
+          "template": "{{ if or (gt .Staging.Deleted 0) (gt .Working.Deleted 0) }}{{ add .Staging.Deleted .Working.Deleted }}{{ end }}",
+          "properties": { "fetch_status": true }
+        },
+        {
+          "type": "text",
+          "style": "plain",
+          "foreground": "p:overlay0",
+          "template": ""
+        }
+      ]
+    }
+  ],
+  "final_space": true,
+  "version": 4
+}

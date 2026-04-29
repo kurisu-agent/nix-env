@@ -1,0 +1,82 @@
+// Same as default.kdl but adds the built-in zellij:status-bar plugin at
+// the bottom so keybinding hints are visible. Pick with `zellij --layout help`.
+// mkConfigDir substitutes __ZJSTATUS__ / __STATUS_CMD__ / __TIMEZONE__.
+layout {
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="file:__ZJSTATUS__" {
+                color_bg      "#000000"
+                color_text    "#CDD6F4"
+                color_subtext "#A6ADC8"
+                color_overlay "#6C7086"
+                color_surface0 "#313244"
+                color_pink    "#F5C2E7"
+                color_mauve   "#CBA6F7"
+                color_lavender "#B4BEFE"
+                color_blue    "#89B4FA"
+                color_teal    "#94E2D5"
+                color_green   "#A6E3A1"
+                color_yellow  "#F9E2AF"
+                color_peach   "#FAB387"
+
+                format_left  "{command_identity}"
+                format_center "#[fg=$overlay]{command_ip} #[fg=$surface0]│#[fg=$overlay] {command_cpu} #[fg=$surface0]│#[fg=$overlay] {command_mem} #[fg=$surface0]│#[fg=$overlay] {command_network}"
+                format_right "{tabs}#[fg=$overlay] {datetime}#[fg=$overlay]{command_conn_mosh}{command_conn_ssh}{command_conn_local}"
+
+                datetime "#[fg=$overlay]{format}"
+                datetime_format "%H:%M %Z"
+                datetime_timezone "__TIMEZONE__"
+                format_space ""
+                format_hide_on_overlength "true"
+                format_precedence "lrc"
+
+                tab_normal   "#[fg=$overlay] {index} "
+                tab_active   "#[fg=$green,bold] {index} "
+
+                command_identity_command "__STATUS_CMD__ identity"
+                command_identity_format "{stdout}"
+                command_identity_interval "5"
+                command_identity_rendermode "dynamic"
+
+                command_conn_mosh_command "__STATUS_CMD__ conn_mosh"
+                command_conn_mosh_format "{stdout}"
+                command_conn_mosh_interval "5"
+                command_conn_mosh_rendermode "dynamic"
+
+                command_conn_ssh_command "__STATUS_CMD__ conn_ssh"
+                command_conn_ssh_format "{stdout}"
+                command_conn_ssh_interval "5"
+                command_conn_ssh_rendermode "dynamic"
+
+                command_conn_local_command "__STATUS_CMD__ conn_local"
+                command_conn_local_format "{stdout}"
+                command_conn_local_interval "5"
+                command_conn_local_rendermode "dynamic"
+
+                command_ip_command "__STATUS_CMD__ ip"
+                command_ip_format "{stdout}"
+                command_ip_interval "5"
+                command_ip_rendermode "dynamic"
+
+                command_cpu_command "__STATUS_CMD__ cpu"
+                command_cpu_format "{stdout}"
+                command_cpu_interval "1"
+                command_cpu_rendermode "dynamic"
+
+                command_mem_command "__STATUS_CMD__ mem"
+                command_mem_format "{stdout}"
+                command_mem_interval "1"
+                command_mem_rendermode "dynamic"
+
+                command_network_command "__STATUS_CMD__ network"
+                command_network_format "{stdout}"
+                command_network_interval "2"
+                command_network_rendermode "dynamic"
+            }
+        }
+        children
+        pane size=2 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+}
