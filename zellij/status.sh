@@ -63,6 +63,12 @@ case "${1:-}" in
         [ -n "$icon" ] && prefix="$icon "
         printf "#[fg=%s,bold]%s%s" "$color" "$prefix" "$name"
         ;;
+    user)
+        # Optional `user` field on identity.json — typically the kart's
+        # character. Renders blank when unset.
+        u=$(info_field user)
+        if [ -n "$u" ]; then printf "%s" "$u"; fi
+        ;;
     conn_mosh)
         if [ "$(conn_now)" = "mosh" ]; then printf ' '; fi
         ;;
@@ -113,7 +119,7 @@ case "${1:-}" in
         ;;
     *)
         echo "nix-env-zellij-status: unknown field '${1:-}'" >&2
-        echo "  known: identity conn_mosh conn_ssh conn_local ip cpu mem network" >&2
+        echo "  known: identity user conn_mosh conn_ssh conn_local ip cpu mem network" >&2
         exit 1
         ;;
 esac

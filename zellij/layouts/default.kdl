@@ -27,7 +27,7 @@ layout {
 
                 format_left  "{command_identity}"
                 format_center "#[fg=$overlay]{command_ip} #[fg=$surface0]│#[fg=$overlay] {command_cpu} #[fg=$surface0]│#[fg=$overlay] {command_mem} #[fg=$surface0]│#[fg=$overlay] {command_network}"
-                format_right "{tabs}#[fg=$overlay] {datetime}#[fg=$overlay]{command_conn_mosh}{command_conn_ssh}{command_conn_local}"
+                format_right "{tabs}#[fg=$overlay] {command_user} {datetime}#[fg=$overlay]{command_conn_mosh}{command_conn_ssh}{command_conn_local}"
 
                 datetime "#[fg=$overlay]{format}"
                 datetime_format "%H:%M %Z"
@@ -43,6 +43,11 @@ layout {
                 command_identity_format "{stdout}"
                 command_identity_interval "5"
                 command_identity_rendermode "dynamic"
+
+                command_user_command "__STATUS_CMD__ user"
+                command_user_format "{stdout}"
+                command_user_interval "5"
+                command_user_rendermode "dynamic"
 
                 command_conn_mosh_command "__STATUS_CMD__ conn_mosh"
                 command_conn_mosh_format "{stdout}"

@@ -113,6 +113,24 @@ JSON
   [[ "$output" == *""* ]]
 }
 
+@test "user: prints identity.user when present" {
+  cat > "$NIX_ENV_IDENTITY_FILE" <<'JSON'
+{ "user": "rojo" }
+JSON
+  run bash "$STATUS_SH" user
+  [ "$status" -eq 0 ]
+  [ "$output" = "rojo" ]
+}
+
+@test "user: silent when identity.user missing" {
+  cat > "$NIX_ENV_IDENTITY_FILE" <<'JSON'
+{ "name": "kart.alpha" }
+JSON
+  run bash "$STATUS_SH" user
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
 @test "unknown field exits non-zero" {
   run bash "$STATUS_SH" not-a-field
   [ "$status" -ne 0 ]
