@@ -27,7 +27,7 @@ layout {
 
                 format_left  "{command_identity}"
                 format_center "#[fg=$overlay]{command_ip} #[fg=$surface0]│#[fg=$overlay] {command_cpu} #[fg=$surface0]│#[fg=$overlay] {command_mem} #[fg=$surface0]│#[fg=$overlay] {command_network}"
-                format_right "{tabs}#[fg=$overlay] {command_user} {datetime}#[fg=$overlay]{command_conn_mosh}{command_conn_ssh}{command_conn_local}"
+                format_right "{tabs} {command_user} #[fg=$overlay]{datetime}#[fg=$overlay]{command_conn_mosh}{command_conn_ssh}{command_conn_local}"
 
                 datetime "#[fg=$overlay]{format}"
                 datetime_format "%H:%M %Z"

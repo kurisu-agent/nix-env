@@ -20,13 +20,13 @@ NIX_ENV_IDENTITY_FILE="${NIX_ENV_IDENTITY_FILE:-$HOME/.config/zellij/identity.js
 # of the script can interpolate them without storing literal multi-byte
 # code points in the source (which can get stripped by editors / paste
 # buffers / write tools that handle PUA-range UTF-8 inconsistently).
-GLYPH_MOSH=$''      # wifi
-GLYPH_SSH=$''       # lock
-GLYPH_LOCAL=$''     # desktop
-GLYPH_CPU=$''       # chip
-GLYPH_MEM=$''       # memory
-GLYPH_NET_RX=$''    # download arrow
-GLYPH_NET_TX=$''    # upload arrow
+GLYPH_MOSH=$''    # bolt (mosh)
+GLYPH_SSH=$''     # lock
+GLYPH_LOCAL=$''   # desktop
+GLYPH_CPU=$''     # chip
+GLYPH_MEM=$''     # memory
+GLYPH_NET_RX=$''  # download arrow
+GLYPH_NET_TX=$''  # upload arrow
 
 palette() {
     case "${1:-}" in
