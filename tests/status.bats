@@ -113,13 +113,14 @@ JSON
   [[ "$output" == *""* ]]
 }
 
-@test "user: prints identity.user when present" {
+@test "user: prints identity.user coloured by identity.color" {
   cat > "$NIX_ENV_IDENTITY_FILE" <<'JSON'
-{ "user": "rojo" }
+{ "user": "rojo", "color": "lavender" }
 JSON
   run bash "$STATUS_SH" user
   [ "$status" -eq 0 ]
-  [ "$output" = "rojo" ]
+  [[ "$output" == *"#B4BEFE"* ]]
+  [[ "$output" == *"rojo"* ]]
 }
 
 @test "user: silent when identity.user missing" {

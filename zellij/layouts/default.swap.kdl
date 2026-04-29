@@ -28,14 +28,24 @@ swap_tiled_layout name="vertical" {
     }
 }
 
-// 2x2 grid for exactly four panes. zellij picks the smallest matching
-// max_panes, so this only fires at count==4; other counts stay on
-// rows/vertical when cycling with Alt -.
+// 2x2 grid for four panes. Newline-separated `pane` statements rather
+// than semicolon-chained ones because zellij's swap-layout parser
+// silently drops layouts where the inner KDL doesn't match its expected
+// shape — semicolon-chained `pane`s read as a single pane node by some
+// parser paths. max_panes=4 means "applies to tabs with up to 4 panes",
+// so cycling with Alt - hits this between vertical (max_panes=5) and
+// stacked (no max_panes) at exactly 4 panes.
 swap_tiled_layout name="quadrants" {
     tab max_panes=4 {
         pane split_direction="horizontal" {
-            pane split_direction="vertical" { pane; pane; }
-            pane split_direction="vertical" { pane; pane; }
+            pane split_direction="vertical" {
+                pane
+                pane
+            }
+            pane split_direction="vertical" {
+                pane
+                pane
+            }
         }
     }
 }

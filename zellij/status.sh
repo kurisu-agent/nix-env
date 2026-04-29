@@ -16,6 +16,18 @@ export LANG=en_US.UTF-8
 
 NIX_ENV_IDENTITY_FILE="${NIX_ENV_IDENTITY_FILE:-$HOME/.config/zellij/identity.json}"
 
+# Nerd-font glyphs as ANSI-C-quoted escapes. Defined here so the rest
+# of the script can interpolate them without storing literal multi-byte
+# code points in the source (which can get stripped by editors / paste
+# buffers / write tools that handle PUA-range UTF-8 inconsistently).
+GLYPH_MOSH=$''      # wifi
+GLYPH_SSH=$''       # lock
+GLYPH_LOCAL=$''     # desktop
+GLYPH_CPU=$''       # chip
+GLYPH_MEM=$''       # memory
+GLYPH_NET_RX=$''    # download arrow
+GLYPH_NET_TX=$''    # upload arrow
+
 palette() {
     case "${1:-}" in
         text)     printf "#CDD6F4" ;;
@@ -65,19 +77,24 @@ case "${1:-}" in
         ;;
     user)
         # Optional `user` field on identity.json — typically the kart's
-        # character. Renders blank when unset.
+        # character. Coloured with identity.color so the right side of
+        # the topbar mirrors the kart-identity tint on the left.
         u=$(info_field user)
-        if [ -n "$u" ]; then printf "%s" "$u"; fi
+        if [ -n "$u" ]; then
+            color_name=$(info_field color)
+            color=$(palette "${color_name:-overlay0}")
+            printf "#[fg=%s,bold]%s" "$color" "$u"
+        fi
         ;;
     conn_mosh)
-        if [ "$(conn_now)" = "mosh" ]; then printf ' '; fi
+        if [ "$(conn_now)" = "mosh" ]; then printf ' %s' "$GLYPH_MOSH"; fi
         ;;
     conn_ssh)
         c=$(conn_now)
-        if [ "$c" = "ssh" ] || [ "$c" = "devpod" ]; then printf ' '; fi
+        if [ "$c" = "ssh" ] || [ "$c" = "devpod" ]; then printf ' %s' "$GLYPH_SSH"; fi
         ;;
     conn_local)
-        if [ "$(conn_now)" = "local" ]; then printf ' '; fi
+        if [ "$(conn_now)" = "local" ]; then printf ' %s' "$GLYPH_LOCAL"; fi
         ;;
     ip)
         ip -4 addr show 2>/dev/null | grep -oE 'inet ([0-9]+\.){3}[0-9]+' | awk '{print $2}' | grep -v '^127\.' | head -1
@@ -95,7 +112,7 @@ case "${1:-}" in
         color="#6C7086"
         [ "$cpu_pct" -ge 50 ] && color="#F9E2AF"
         [ "$cpu_pct" -ge 80 ] && color="#F38BA8"
-        printf "#[fg=%s] %-2s %s%%" "$color" "$cpus" "$cpu_pct"
+        printf "#[fg=%s]%s %-2s %s%%" "$color" "$GLYPH_CPU" "$cpus" "$cpu_pct"
         ;;
     mem)
         mem_total=$(free -m | awk '/Mem:/{print int(($2 + 1023) / 1024)}')
@@ -103,7 +120,7 @@ case "${1:-}" in
         color="#6C7086"
         [ "$mem_pct" -ge 80 ] && color="#F9E2AF"
         [ "$mem_pct" -ge 95 ] && color="#F38BA8"
-        printf "#[fg=%s] %-2s %s%%" "$color" "$mem_total" "$mem_pct"
+        printf "#[fg=%s]%s %-2s %s%%" "$color" "$GLYPH_MEM" "$mem_total" "$mem_pct"
         ;;
     network)
         read -r rx1 tx1 < <(awk '!/lo:/ && /:/{rx+=$2; tx+=$10} END{printf "%d %d\n", rx, tx}' /proc/net/dev)
@@ -115,7 +132,7 @@ case "${1:-}" in
         if [ "$tx_rate" -gt 1024 ]; then tx_str="$(( tx_rate / 1024 ))M"; else tx_str="${tx_rate}K"; fi
         rx_color="#6C7086"; [ "$rx_rate" -ge 5120 ] && rx_color="#F9E2AF"
         tx_color="#6C7086"; [ "$tx_rate" -ge 5120 ] && tx_color="#F9E2AF"
-        printf "#[fg=%s] %-4s #[fg=%s] %-4s" "$rx_color" "$rx_str" "$tx_color" "$tx_str"
+        printf "#[fg=%s]%s %-4s #[fg=%s]%s %-4s" "$rx_color" "$GLYPH_NET_RX" "$rx_str" "$tx_color" "$GLYPH_NET_TX" "$tx_str"
         ;;
     *)
         echo "nix-env-zellij-status: unknown field '${1:-}'" >&2
