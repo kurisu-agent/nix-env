@@ -20,7 +20,7 @@ let
 
   claudeStatus = nix-env-lib.claude.mkStatusBin {
     installedVersion = cfg.package.version;
-    inherit (cfg) versionProbe pathPrefix;
+    inherit (cfg) versionProbe pathPrefix effortLevel;
   };
 
   settingsFile = nix-env-lib.claude.mkSettings {
@@ -48,8 +48,16 @@ in
         "low"
         "medium"
         "high"
+        "xhigh"
+        "max"
       ];
       default = "high";
+      description = ''
+        Reasoning effort baked into both settings.json and the statusline
+        glyph. Note: "max" isn't in upstream's settings.json schema enum
+        (anthropics/claude-code#52247) and is officially session-only —
+        but the CLI still writes it via /effort, so it's included here.
+      '';
     };
 
     skipDangerousPrompt = lib.mkOption {

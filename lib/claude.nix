@@ -7,9 +7,36 @@
 }:
 
 let
+  # MDI circle_slice family rendered as a heat map for the configured
+  # effort level. Effort isn't exposed in the statusline stdin JSON
+  # (anthropics/claude-code#36187, #31415), so this reflects the *configured*
+  # level — not session overrides from `/effort`. RGBs match palette.nix.
+  effortGlyphs = {
+    low = {
+      glyph = "󰪞";
+      rgb = "166;227;161";
+    }; # 1/8 · green
+    medium = {
+      glyph = "󰪠";
+      rgb = "249;226;175";
+    }; # 3/8 · yellow
+    high = {
+      glyph = "󰪢";
+      rgb = "250;179;135";
+    }; # 5/8 · peach
+    xhigh = {
+      glyph = "󰪤";
+      rgb = "235;160;172";
+    }; # 7/8 · maroon
+    max = {
+      glyph = "󰪥";
+      rgb = "243;139;168";
+    }; # 8/8 · red
+  };
+
   # mkStatusBin renders a statusline that reads claude session JSON on
   # stdin and prints a one-line prompt: `<path> <branch> <added> <mod>
-  # <del> · <pct>% · <model> · <installed> [→ <latest>]`.
+  # <del> · <pct>% · [<effort>] <model> · <installed> [→ <latest>]`.
   #
   # Args:
   #   installedVersion : string — what the binary reports as the running
@@ -25,12 +52,20 @@ let
   #                      glob render as `<first>/.../<leaf>` (devcontainer
   #                      workspaces typically use /workspaces/* so the
   #                      prompt mirrors omp's agnoster_short).
+  #   effortLevel      : "low" | "medium" | "high" | "xhigh" | "max" | null —
+  #                      when non-null, renders an MDI circle-slice glyph
+  #                      next to the model name, filled in proportion to the
+  #                      level. Should match `mkSettings`'s effortLevel.
   mkStatusBin =
     {
       installedVersion,
       versionProbe ? null,
       pathPrefix ? null,
+      effortLevel ? null,
     }:
+    let
+      effort = if effortLevel == null then null else effortGlyphs.${effortLevel} or null;
+    in
     pkgs.writeShellApplication {
       name = "nix-env-claude-status";
       runtimeInputs = with pkgs; [
@@ -120,6 +155,9 @@ let
         YELLOW=$'\033[38;2;249;226;175m'    # ${palette.yellow}
         RED=$'\033[38;2;243;139;168m'       # ${palette.red}
         DIM=$'\033[2m'
+        ${lib.optionalString (effort != null) ''
+          EFFORT=$'\033[38;2;${effort.rgb}m'
+        ''}
 
         line="''${PINK}''${short_cwd}''${RESET}"
         if [ -n "$branch" ]; then
@@ -128,7 +166,11 @@ let
           [ "$modified" -gt 0 ] && line="''${line} ''${YELLOW}''${modified}''${RESET}"
           [ "$deleted"  -gt 0 ] && line="''${line} ''${RED}''${deleted}''${RESET}"
         fi
-        line="''${line} ''${DIM}· ''${pct}% · ''${model_lc} · ''${installed}''${RESET}"
+        line="''${line} ''${DIM}· ''${pct}%''${RESET}"
+        ${lib.optionalString (effort != null) ''
+          line="''${line} ''${DIM}·''${RESET} ''${EFFORT}${effort.glyph}''${RESET}"
+        ''}
+        line="''${line} ''${DIM}· ''${model_lc} · ''${installed}''${RESET}"
 
         ${lib.optionalString (versionProbe != null) ''
           # Shared cache per-UID so a long session sees a newer session's poll
