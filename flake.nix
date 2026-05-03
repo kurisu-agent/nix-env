@@ -3,10 +3,22 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # sadjow/claude-code-nix tracks upstream npm releases more aggressively
+    # than nixpkgs. Consumers that already pin claude-code-nix should
+    # `inputs.nix-env.inputs.claude-code-nix.follows = "claude-code-nix"`
+    # to keep one copy in their lock.
+    claude-code-nix = {
+      url = "github:sadjow/claude-code-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
-    { self, nixpkgs }:
+    {
+      self,
+      nixpkgs,
+      claude-code-nix,
+    }:
     let
       systems = [
         "x86_64-linux"
@@ -151,7 +163,13 @@
           mkModule =
             file:
             { pkgs, ... }@args:
-            import file (args // { nix-env-lib = self.lib.${pkgs.stdenv.hostPlatform.system}; });
+            import file (
+              args
+              // {
+                nix-env-lib = self.lib.${pkgs.stdenv.hostPlatform.system};
+                inherit claude-code-nix;
+              }
+            );
         in
         {
           zellij = mkModule ./nixos/zellij.nix;

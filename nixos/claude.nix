@@ -6,6 +6,7 @@
   config,
   lib,
   pkgs,
+  claude-code-nix,
   ...
 }@args:
 
@@ -34,7 +35,15 @@ in
 
     package = lib.mkOption {
       type = lib.types.package;
-      description = "The claude-code derivation. Typically `claude-code-nix.packages.\${system}.claude-code`.";
+      default = claude-code-nix.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
+      defaultText = lib.literalExpression "claude-code-nix.packages.\${system}.claude-code";
+      description = ''
+        The claude-code derivation. Defaults to the
+        `claude-code-nix` flake input pinned by nix-env (the
+        sadjow/claude-code-nix fork tracks upstream npm releases more
+        aggressively than nixpkgs). Override only if you want a
+        specific build.
+      '';
     };
 
     agentTeams = lib.mkOption {
@@ -68,12 +77,21 @@ in
 
     versionProbe = lib.mkOption {
       type = lib.types.nullOr (lib.types.attrsOf lib.types.str);
-      default = null;
-      example = {
+      default = {
         url = "https://raw.githubusercontent.com/sadjow/claude-code-nix/main/package.nix";
         extract = ''version[[:space:]]*=[[:space:]]*"([^"]+)"'';
       };
-      description = "Optional `{ url, extract }` for the statusline's upgrade-available hint.";
+      defaultText = lib.literalExpression ''
+        {
+          url = "https://raw.githubusercontent.com/sadjow/claude-code-nix/main/package.nix";
+          extract = ''''version[[:space:]]*=[[:space:]]*"([^"]+)"'''';
+        }
+      '';
+      description = ''
+        `{ url, extract }` for the statusline's "upgrade available"
+        hint — defaults to the same `claude-code-nix` source the
+        package itself comes from. Set to `null` to disable polling.
+      '';
     };
 
     pathPrefix = lib.mkOption {
@@ -81,6 +99,17 @@ in
       default = null;
       example = "/workspaces/*";
       description = "Glob for paths that should render as `<first>/.../<leaf>` (devcontainer workspaces).";
+    };
+
+    cachix = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Wire `claude-code.cachix.org` into `nix.settings.substituters`
+        with its trusted-public-key. Avoids compiling the node-based
+        bundle from source on cold cache miss. Disable on hosts that
+        must not pull from third-party caches.
+      '';
     };
   };
 
@@ -99,5 +128,12 @@ in
     environment.interactiveShellInit = ''
       alias yolo='claude --dangerously-skip-permissions'
     '';
+
+    nix.settings = lib.mkIf cfg.cachix {
+      substituters = [ "https://claude-code.cachix.org" ];
+      trusted-public-keys = [
+        "claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk="
+      ];
+    };
   };
 }
