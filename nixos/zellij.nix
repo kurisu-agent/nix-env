@@ -89,13 +89,20 @@ in
 
     socketDir = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
-      default = null;
+      default = "/tmp/zellij-1000";
       example = "/tmp/zellij-1000";
       description = ''
-        Override `ZELLIJ_SOCKET_DIR` system-wide. Set this on single-user
-        hosts to fix the mosh/SSH split-brain (mosh doesn't get
-        XDG_RUNTIME_DIR from PAM, so zellij falls back to /tmp while SSH
-        uses /run/user). Leave null on multi-user systems.
+        `ZELLIJ_SOCKET_DIR` system-wide override. Defaults to
+        `/tmp/zellij-1000` to fix the mosh/SSH split-brain — mosh-server
+        doesn't inherit `XDG_RUNTIME_DIR` from PAM, so zellij falls back
+        to `/tmp/zellij-$UID` while SSH sessions (which do inherit it)
+        find sockets at `/run/user/$UID/zellij`. Two access paths, two
+        socket dirs, can't see each other's sessions. Pinning the path
+        forces both to converge.
+
+        Set to `null` on multi-user systems (the literal string can't
+        expand `$UID`, so every user would collide on `/tmp/zellij-1000`)
+        or hosts running zellij under a UID other than 1000.
       '';
     };
 
