@@ -156,7 +156,7 @@ let
 
         line="''${PINK}''${short_cwd}''${RESET}"
         if [ -n "$branch" ]; then
-          line="''${line} ''${LAVENDER} ''${branch}''${RESET}"
+          line="''${line} ''${LAVENDER}''${branch}''${RESET}"
           [ "$added"    -gt 0 ] && line="''${line} ''${GREEN}''${added}''${RESET}"
           [ "$modified" -gt 0 ] && line="''${line} ''${YELLOW}''${modified}''${RESET}"
           [ "$deleted"  -gt 0 ] && line="''${line} ''${RED}''${deleted}''${RESET}"
@@ -165,8 +165,10 @@ let
         # acts as the separator between context-pct and model name, so
         # no `·` between them. Effort renders in default colour (no
         # special peach tint). The `·` before `installed` stays because
-        # version is a distinct semantic group from model.
-        line="''${line} ''${DIM}· ''${pct}%''${RESET}"
+        # version is a distinct semantic group from model. No separator
+        # before `pct` either: `<branch> <added> <modified> <deleted>
+        # <pct>%` already reads as one git+context cluster.
+        line="''${line} ''${DIM}''${pct}%''${RESET}"
         ${lib.optionalString (effort != null) ''
           line="''${line} ${effort.glyph}"
         ''}
