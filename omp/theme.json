@@ -22,16 +22,16 @@
       "type": "prompt",
       "segments": [
         {
-          "type": "os",
+          "type": "text",
           "style": "plain",
           "foreground": "p:text",
-          "template": "{{.Icon}} {{ .UserName }}@{{ .HostName }} "
+          "template": "{{ .UserName }}@{{ .HostName }} "
         },
         {
           "type": "path",
           "style": "plain",
           "foreground": "p:pink",
-          "template": "{{ $segs := splitList \"/\" .Path }}{{ $n := len $segs }}{{ if le $n 3 }}{{ .Path }}{{ else }}{{ index $segs 0 }}/{{ index $segs 1 }}/{{ index $segs 2 }}/{{ end }} ",
+          "template": "{{ $segs := splitList \"/\" .Path }}{{ $n := len $segs }}{{ if le $n 4 }}{{ .Path }}{{ else }}{{ index $segs 0 }}/{{ index $segs 1 }}/{{ index $segs 2 }}//{{ index $segs (sub $n 1) }}{{ end }} ",
           "properties": {
             "home_icon": "~",
             "style": "full"
@@ -79,8 +79,8 @@
         {
           "type": "text",
           "style": "plain",
-          "foreground": "p:overlay0",
-          "template": ""
+          "foreground": "p:mauve",
+          "template": "❯"
         }
       ]
     }

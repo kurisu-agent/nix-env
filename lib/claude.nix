@@ -94,17 +94,20 @@ let
         model_lc=$(printf '%s' "$model" | tr '[:upper:]' '[:lower:]' | sed -E 's/ ?\(([^)]*) context\)/ \1/')
 
         # Path shortener — keeps the first two real segments (after
-        # `~` or leading `/`) and replaces everything deeper with a
-        # nerd-font ellipsis glyph (U+F141, renders as a horizontal `…`
-        # in nerd fonts). Mirrors the OMP path template in omp/theme.json
-        # so the zsh prompt and the claude statusline render identical paths.
+        # `~` or leading `/`) plus the final segment, with a nerd-font
+        # ellipsis glyph (U+F141, renders as `…` in nerd fonts) standing
+        # in for everything in between. Threshold is n > 4 path parts so
+        # paths that wouldn't lose anything to elision render in full.
+        # Mirrors the OMP path template in omp/theme.json so the zsh
+        # prompt and the claude statusline render identical paths.
         # Examples (with $HOME = /home/dev):
         #   /home/dev                                            -> ~
         #   /home/dev/Code                                       -> ~/Code
         #   /home/dev/Code/foo                                   -> ~/Code/foo
-        #   /home/dev/Code/foo/bar/baz                           -> ~/Code/foo/…
+        #   /home/dev/Code/foo/bar                               -> ~/Code/foo/bar
+        #   /home/dev/Code/foo/bar/baz                           -> ~/Code/foo/bar/…/baz
         #   /etc/nixos                                           -> /etc/nixos
-        #   /workspaces/myrepo/src/components                    -> /workspaces/myrepo/…
+        #   /workspaces/myrepo/src/components                    -> /workspaces/myrepo/src/…/components
         path_for_display() {
           p="$1"
           case "$p" in
@@ -113,10 +116,10 @@ let
           esac
           IFS='/' read -ra segs <<< "$p"
           n=''${#segs[@]}
-          if [ "$n" -le 3 ]; then
+          if [ "$n" -le 4 ]; then
             printf '%s' "$p"
           else
-            printf '%s/%s/%s/%s' "''${segs[0]}" "''${segs[1]}" "''${segs[2]}" $''
+            printf '%s/%s/%s/%s/%s' "''${segs[0]}" "''${segs[1]}" "''${segs[2]}" $'' "''${segs[$((n-1))]}"
           fi
         }
         short_cwd=$(path_for_display "$cwd")
