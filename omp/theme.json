@@ -25,13 +25,7 @@
           "type": "os",
           "style": "plain",
           "foreground": "p:text",
-          "foreground_templates": [
-            "{{ if eq .Env.NIX_ENV_TYPE \"coder\" }}p:pink{{ end }}",
-            "{{ if eq .Env.NIX_ENV_TYPE \"vm\" }}p:mauve{{ end }}",
-            "{{ if eq .Env.NIX_ENV_TYPE \"docker\" }}p:blue{{ end }}",
-            "{{ if eq .Env.NIX_ENV_TYPE \"local\" }}p:yellow{{ end }}"
-          ],
-          "template": "{{ if ne .Env.NIX_ENV_TYPE \"devcontainer\" }}{{.Icon}} {{ .UserName }}@{{ .HostName }} {{ end }}"
+          "template": "{{.Icon}} {{ .UserName }}@{{ .HostName }} "
         },
         {
           "type": "path",

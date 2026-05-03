@@ -47,29 +47,6 @@ let
     ];
   };
 
-  detectEnvTypeFn = ''
-    _nix_env_type() {
-      if [[ -n "''${CODER_WORKSPACE_NAME:-}" ]] || [[ -d /coder ]]; then
-        echo coder
-      elif [[ -f /.dockerenv ]]; then
-        if [[ -d /workspaces ]] && find /workspaces -maxdepth 2 -name .devcontainer -type d 2>/dev/null | grep -q .; then
-          echo devcontainer
-        else
-          echo docker
-        fi
-      elif [[ -f /sys/class/dmi/id/sys_vendor ]]; then
-        local vendor
-        vendor=$(cat /sys/class/dmi/id/sys_vendor 2>/dev/null)
-        case "$vendor" in
-          *QEMU*|*KVM*|*VMware*|*VirtualBox*|*Xen*|*Microsoft*|*Amazon*|*Google*) echo vm ;;
-          *) echo local ;;
-        esac
-      else
-        echo local
-      fi
-    }
-  '';
-
   # mkShellRc renders bashrc-bootstrap + zshrc + a copy of the zellij
   # config tree under a single `share/nix-env/` prefix. The bashrc-bootstrap
   # is the boot script `~/.bashrc` is expected to source; the zshrc is what
@@ -156,10 +133,6 @@ let
         SAVEHIST=${toString historyOpts.saveSize}
         setopt ${lib.concatStringsSep " " historyOpts.setOptions}
 
-        ${detectEnvTypeFn}
-        export NIX_ENV_TYPE="$(_nix_env_type)"
-        unset -f _nix_env_type
-
         # zsh plugins from the user's nix-profile (the toolkit symlinkJoin
         # delivers them). Best-effort: a missing plugin doesn't error.
         for _ne_plugin in \
@@ -228,7 +201,6 @@ in
     syntaxHighlightStyles
     autosuggestStyle
     historyOpts
-    detectEnvTypeFn
     mkShellRc
     mkWrappedZsh
     ;

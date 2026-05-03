@@ -150,6 +150,9 @@
           import ./nixos/zellij-zsh.nix (
             args // { nix-env-lib = self.lib.${args.pkgs.system or "x86_64-linux"}; }
           );
+        zsh =
+          args:
+          import ./nixos/zsh.nix (args // { nix-env-lib = self.lib.${args.pkgs.system or "x86_64-linux"}; });
         claude =
           args:
           import ./nixos/claude.nix (
