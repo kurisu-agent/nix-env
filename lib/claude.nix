@@ -93,17 +93,18 @@ let
 
         model_lc=$(printf '%s' "$model" | tr '[:upper:]' '[:lower:]' | sed -E 's/ ?\(([^)]*) context\)/ \1/')
 
-        # Path shortener — keeps first two segments + last segment, with a
-        # nerd-font ellipsis glyph (U+F141) standing in for everything in
-        # between. Mirrors the OMP path template in omp/theme.json so the
-        # zsh prompt and the claude statusline render identical paths.
+        # Path shortener — keeps the first two real segments (after
+        # `~` or leading `/`) and replaces everything deeper with a
+        # nerd-font ellipsis glyph (U+F141, renders as a horizontal `…`
+        # in nerd fonts). Mirrors the OMP path template in omp/theme.json
+        # so the zsh prompt and the claude statusline render identical paths.
         # Examples (with $HOME = /home/dev):
         #   /home/dev                                            -> ~
         #   /home/dev/Code                                       -> ~/Code
         #   /home/dev/Code/foo                                   -> ~/Code/foo
-        #   /home/dev/Code/foo/bar/baz                           -> ~/Code/foo//baz
+        #   /home/dev/Code/foo/bar/baz                           -> ~/Code/foo/…
         #   /etc/nixos                                           -> /etc/nixos
-        #   /workspaces/myrepo/src/components                    -> /workspaces/myrepo//components
+        #   /workspaces/myrepo/src/components                    -> /workspaces/myrepo/…
         path_for_display() {
           p="$1"
           case "$p" in
@@ -115,7 +116,7 @@ let
           if [ "$n" -le 3 ]; then
             printf '%s' "$p"
           else
-            printf '%s/%s/%s/%s' "''${segs[0]}" "''${segs[1]}" $'' "''${segs[$((n-1))]}"
+            printf '%s/%s/%s/%s' "''${segs[0]}" "''${segs[1]}" "''${segs[2]}" $''
           fi
         }
         short_cwd=$(path_for_display "$cwd")
