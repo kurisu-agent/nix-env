@@ -11,6 +11,7 @@ let
   pkgs = nixpkgs.legacyPackages.${system};
   inherit (nixpkgs) lib;
   palette = import ./palette.nix;
+  nerd-fonts = import ./nerd-fonts.nix { inherit pkgs lib; };
   zellij = import ./zellij.nix {
     inherit
       pkgs
@@ -20,7 +21,7 @@ let
   };
 in
 {
-  inherit palette zellij;
+  inherit palette zellij nerd-fonts;
 
   claude = import ./claude.nix {
     inherit pkgs palette lib;

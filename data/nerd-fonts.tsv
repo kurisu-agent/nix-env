@@ -1,0 +1,34 @@
+# Nerd Font glyph table — name<TAB>hex codepoint.
+# Names are the official `nf-*` slug minus the leading `nf-` prefix.
+# Source: https://www.nerdfonts.com/cheat-sheet
+#
+# Add entries as needed. Build-time generates the literal-glyph attrset
+# (lib/nerd-fonts.nix) so this file stays ASCII-only and editable.
+fa-refresh	F021
+fa-pencil	F040
+fa-wrench	F0AD
+fa-hammer	F6E3
+fa-flask	F0C3
+fa-eye	F06E
+fa-server	F233
+fa-microchip	F2DB
+fa-truck	F0D1
+fa-rocket	F135
+fa-desktop	F108
+fa-cogs	F085
+fa-bug	F188
+fa-tv	F26C
+fa-terminal	F120
+fa-code	F121
+fa-cube	F1B2
+fa-database	F1C0
+cod-circuit-board	EBA9
+cod-server	EBA9
+cod-debug	EAD8
+cod-vm	EA7A
+md-pencil	F03EB
+md-test-tube	F04C6
+md-cube-outline	F01A7
+md-cog	F0493
+md-hammer	F08D7
+md-rocket-launch	F14DE

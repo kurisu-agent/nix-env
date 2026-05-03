@@ -37,9 +37,15 @@ let
 
   # Drop null fields so identity.json is `{}` rather than `{"color":null,...}`.
   # status.sh's `jq -r '.X // empty'` handles either, but the shorter form is
-  # nicer to read when debugging a host's rendered file.
+  # nicer to read when debugging a host's rendered file. Resolve nf-* icon
+  # slugs to literal glyphs at write-time (lib/nerd-fonts.nix).
   identityAttrs = lib.optionalAttrs (cfg.identity != null) (
-    lib.filterAttrs (_: v: v != null) cfg.identity
+    lib.filterAttrs (_: v: v != null) (
+      cfg.identity
+      // lib.optionalAttrs (cfg.identity.icon or null != null) {
+        icon = nix-env-lib.nerd-fonts.glyphFor cfg.identity.icon;
+      }
+    )
   );
 
   identityJson = pkgs.writeText "nix-env-zellij-identity.json" (builtins.toJSON identityAttrs);
