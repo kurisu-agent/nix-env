@@ -33,6 +33,32 @@ let
     inherit (cfg) timezone;
     inherit (cfg) withHelpLayout;
   };
+
+  # Drop null fields so identity.json is `{}` rather than `{"color":null,...}`.
+  # status.sh's `jq -r '.X // empty'` handles either, but the shorter form is
+  # nicer to read when debugging a host's rendered file.
+  identityAttrs = lib.optionalAttrs (cfg.identity != null) (
+    lib.filterAttrs (_: v: v != null) cfg.identity
+  );
+
+  identityJson = pkgs.writeText "nix-env-zellij-identity.json" (builtins.toJSON identityAttrs);
+
+  paletteNames = [
+    "text"
+    "subtext0"
+    "overlay0"
+    "pink"
+    "mauve"
+    "lavender"
+    "blue"
+    "sapphire"
+    "sky"
+    "teal"
+    "green"
+    "yellow"
+    "peach"
+    "red"
+  ];
 in
 {
   options.services.zellij = {
@@ -82,6 +108,62 @@ in
         servers outlive the user session.
       '';
     };
+
+    identity = lib.mkOption {
+      type = lib.types.nullOr (
+        lib.types.submodule {
+          options = {
+            color = lib.mkOption {
+              type = lib.types.nullOr (lib.types.enum paletteNames);
+              default = null;
+              description = ''
+                Catppuccin palette name used to tint the topbar identity
+                segment (and the optional `user` character on the right).
+                Unknown / null values render as overlay0 (grey).
+              '';
+            };
+            name = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              description = ''
+                Display name on the left of the topbar. Falls back to
+                `hostname -s` when null.
+              '';
+            };
+            icon = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              description = ''
+                Single grapheme rendered before `name` (emoji or
+                nerd-font glyph). No icon when null.
+              '';
+            };
+            user = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              description = ''
+                Optional character/user string rendered on the right of
+                the topbar in the same color as `color`. Hidden when null.
+              '';
+            };
+          };
+        }
+      );
+      default = null;
+      example = {
+        color = "peach";
+        name = "dev";
+        icon = "🛠";
+      };
+      description = ''
+        Topbar identity declared from Nix. When set, materialises
+        `~/.config/zellij/identity.json` on user activation, which
+        `nix-env-zellij-status` reads each poll. All sub-fields are
+        optional; missing fields fall back to the defaults baked into
+        `status.sh` (hostname for name, no icon, overlay0 colour, no
+        user character).
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -101,6 +183,13 @@ in
       mkdir -p "$HOME/.cache/zellij"
       install -m 0644 ${zellij-lib.permissionsKdl} "$HOME/.cache/zellij/permissions.kdl"
     '';
+
+    system.userActivationScripts.nixEnvZellijIdentity = lib.mkIf (cfg.identity != null) {
+      text = ''
+        mkdir -p "$HOME/.config/zellij"
+        install -m 0644 ${identityJson} "$HOME/.config/zellij/identity.json"
+      '';
+    };
 
     systemd.user.services = lib.mkIf cfg.killOnShutdown {
       zellij-shutdown = {
