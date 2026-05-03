@@ -155,10 +155,10 @@ let
         fi
 
         if command -v eza >/dev/null 2>&1; then
-          alias ls='eza'
-          alias ll='eza -la --group-directories-first'
-          alias la='eza -a'
-          alias lt='eza --tree'
+          alias ls='eza --icons'
+          alias ll='eza -la --icons --group-directories-first'
+          alias la='eza -a --icons'
+          alias lt='eza --tree --icons'
         else
           alias ll='ls -alF'
         fi

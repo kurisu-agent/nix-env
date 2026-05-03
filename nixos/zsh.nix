@@ -80,22 +80,21 @@ in
         eval "$(oh-my-posh init zsh --config ${ompTheme})"
       '';
 
-      interactiveShellInit =
-        ''
-          # eza honours $EZA_CONFIG_DIR for theme.yml; LS_COLORS would override it.
-          unset LS_COLORS EZA_COLORS
-          export EZA_CONFIG_DIR="/etc/xdg/eza"
-        ''
-        + lib.optionalString config.services.zellij.enable ''
+      interactiveShellInit = ''
+        # eza honours $EZA_CONFIG_DIR for theme.yml; LS_COLORS would override it.
+        unset LS_COLORS EZA_COLORS
+        export EZA_CONFIG_DIR="/etc/xdg/eza"
+      ''
+      + lib.optionalString config.services.zellij.enable ''
 
-          ${zellijLib.zshAutoattachSnippet}
-        ''
-        + ''
+        ${zellijLib.zshAutoattachSnippet}
+      ''
+      + ''
 
-          # Personal flair hook: drop ~/.zshrc.local for character-specific
-          # aliases / overrides without forking the flake.
-          [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
-        '';
+        # Personal flair hook: drop ~/.zshrc.local for character-specific
+        # aliases / overrides without forking the flake.
+        [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
+      '';
     };
 
     programs.fzf = lib.mkIf cfg.fzfIntegration {
@@ -104,7 +103,7 @@ in
     };
 
     environment = {
-      shellAliases.ls = "eza";
+      shellAliases.ls = "eza --icons";
 
       etc."xdg/eza/theme.yml".source = ../eza/theme.yml;
 
