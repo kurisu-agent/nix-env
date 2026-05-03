@@ -103,7 +103,15 @@ in
     };
 
     environment = {
-      shellAliases.ls = "eza --icons";
+      # Match the alias set in lib/zsh.nix (used by non-NixOS consumers
+      # like nix-on-droid). Keeping the two paths in lockstep so users
+      # who switch between them don't lose muscle memory.
+      shellAliases = {
+        ls = "eza --icons";
+        ll = "eza -la --icons --group-directories-first";
+        la = "eza -a --icons";
+        lt = "eza --tree --icons";
+      };
 
       etc."xdg/eza/theme.yml".source = ../eza/theme.yml;
 
