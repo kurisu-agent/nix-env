@@ -21,7 +21,7 @@ let
 
   claudeStatus = nix-env-lib.claude.mkStatusBin {
     installedVersion = cfg.package.version;
-    inherit (cfg) versionProbe pathPrefix effortLevel;
+    inherit (cfg) versionProbe effortLevel;
   };
 
   settingsFile = nix-env-lib.claude.mkSettings {
@@ -92,13 +92,6 @@ in
         hint — defaults to the same `claude-code-nix` source the
         package itself comes from. Set to `null` to disable polling.
       '';
-    };
-
-    pathPrefix = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      default = null;
-      example = "/workspaces/*";
-      description = "Glob for paths that should render as `<first>/.../<leaf>` (devcontainer workspaces).";
     };
 
     cachix = lib.mkOption {

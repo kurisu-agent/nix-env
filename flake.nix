@@ -107,7 +107,6 @@
                 # priority; read the running version at runtime instead
                 # of baking the flake-pinned one in.
                 installedVersion = "$(claude --version 2>/dev/null | awk '{print $1}' || printf unknown)";
-                pathPrefix = "/workspaces/*";
               };
             in
             pkgs.symlinkJoin {
@@ -208,10 +207,8 @@
             [ -x "$bin" ] || { echo "nix-env-claude-status not executable" >&2; exit 1; }
             echo '{}' | "$bin" >/dev/null
 
-            # Effort glyph wiring: "high" should emit the peach-coloured
-            # MDI circle_slice_5 segment. Asserting on the ANSI colour
-            # escape (250;179;135) keeps the check ASCII-only — no need to
-            # round-trip a 5-digit Unicode codepoint through a JSON edit.
+            # Effort glyph wiring: "high" should emit the MDI circle_slice_5
+            # glyph (U+F01AA2) into the rendered statusline.
             effort_bin=${
               nix-env-lib.claude.mkStatusBin {
                 installedVersion = "1.2.3";
@@ -219,8 +216,8 @@
               }
             }/bin/nix-env-claude-status
             rendered=$(echo '{}' | "$effort_bin")
-            printf '%s' "$rendered" | grep -qF '38;2;250;179;135' \
-              || { echo "effort glyph segment missing: $rendered" >&2; exit 1; }
+            printf '%s' "$rendered" | grep -qF '󰪢' \
+              || { echo "effort glyph missing in rendered output: $rendered" >&2; exit 1; }
 
             touch $out
           '';

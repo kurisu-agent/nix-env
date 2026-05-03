@@ -48,10 +48,6 @@ let
   #   versionProbe     : { url, extract } | null — when set, polls upstream
   #                      once per session (cached per-UID for an hour) and
   #                      appends a "→ <ver>" hint when an upgrade is available.
-  #   pathPrefix       : string | null — if non-null, paths matching this
-  #                      glob render as `<first>/.../<leaf>` (devcontainer
-  #                      workspaces typically use /workspaces/* so the
-  #                      prompt mirrors omp's agnoster_short).
   #   effortLevel      : "low" | "medium" | "high" | "xhigh" | "max" | null —
   #                      when non-null, renders an MDI circle-slice glyph
   #                      next to the model name, filled in proportion to the
@@ -60,7 +56,6 @@ let
     {
       installedVersion,
       versionProbe ? null,
-      pathPrefix ? null,
       effortLevel ? null,
     }:
     let
@@ -98,31 +93,30 @@ let
 
         model_lc=$(printf '%s' "$model" | tr '[:upper:]' '[:lower:]' | sed -E 's/ ?\(([^)]*) context\)/ \1/')
 
-        # Path shortener mirrors omp's agnoster_short. ${
-          if pathPrefix == null then
-            "No pathPrefix set, so all paths use ~/HOME or absolute."
-          else
-            "When the path matches ${pathPrefix}, render `<first>/.../<leaf>`."
-        }
+        # Path shortener — keeps first two segments + last segment, with a
+        # nerd-font ellipsis glyph (U+F141) standing in for everything in
+        # between. Mirrors the OMP path template in omp/theme.json so the
+        # zsh prompt and the claude statusline render identical paths.
+        # Examples (with $HOME = /home/dev):
+        #   /home/dev                                            -> ~
+        #   /home/dev/Code                                       -> ~/Code
+        #   /home/dev/Code/foo                                   -> ~/Code/foo
+        #   /home/dev/Code/foo/bar/baz                           -> ~/Code/foo//baz
+        #   /etc/nixos                                           -> /etc/nixos
+        #   /workspaces/myrepo/src/components                    -> /workspaces/myrepo//components
         path_for_display() {
-          case "$1" in
-        ${lib.optionalString (pathPrefix != null) ''
-          ${pathPrefix})
-            stripped="''${1#/}"
-            leaf=$(basename "$1")
-            first=$(printf '%s' "$stripped" | cut -d/ -f1)
-            seg_count=$(printf '%s' "$stripped" | awk -F/ '{print NF}')
-            if [ "$seg_count" -le 2 ]; then
-              printf '%s' "$stripped"
-            else
-              printf '%s/.../%s' "$first" "$leaf"
-            fi
-            ;;
-        ''}
-            "$HOME")    printf '~' ;;
-            "$HOME"/*)  printf '~%s' "''${1#"$HOME"}" ;;
-            *)          printf '%s' "$1" ;;
+          p="$1"
+          case "$p" in
+            "$HOME")    printf '~'; return ;;
+            "$HOME"/*)  p="~''${p#"$HOME"}" ;;
           esac
+          IFS='/' read -ra segs <<< "$p"
+          n=''${#segs[@]}
+          if [ "$n" -le 3 ]; then
+            printf '%s' "$p"
+          else
+            printf '%s/%s/%s/%s' "''${segs[0]}" "''${segs[1]}" $'' "''${segs[$((n-1))]}"
+          fi
         }
         short_cwd=$(path_for_display "$cwd")
 
@@ -155,9 +149,6 @@ let
         YELLOW=$'\033[38;2;249;226;175m'    # ${palette.yellow}
         RED=$'\033[38;2;243;139;168m'       # ${palette.red}
         DIM=$'\033[2m'
-        ${lib.optionalString (effort != null) ''
-          EFFORT=$'\033[38;2;${effort.rgb}m'
-        ''}
 
         line="''${PINK}''${short_cwd}''${RESET}"
         if [ -n "$branch" ]; then
@@ -166,11 +157,16 @@ let
           [ "$modified" -gt 0 ] && line="''${line} ''${YELLOW}''${modified}''${RESET}"
           [ "$deleted"  -gt 0 ] && line="''${line} ''${RED}''${deleted}''${RESET}"
         fi
+        # `pct% effort model` reads as one cluster — the effort glyph
+        # acts as the separator between context-pct and model name, so
+        # no `·` between them. Effort renders in default colour (no
+        # special peach tint). The `·` before `installed` stays because
+        # version is a distinct semantic group from model.
         line="''${line} ''${DIM}· ''${pct}%''${RESET}"
         ${lib.optionalString (effort != null) ''
-          line="''${line} ''${DIM}·''${RESET} ''${EFFORT}${effort.glyph}''${RESET}"
+          line="''${line} ${effort.glyph}"
         ''}
-        line="''${line} ''${DIM}· ''${model_lc} · ''${installed}''${RESET}"
+        line="''${line} ''${DIM}''${model_lc} · ''${installed}''${RESET}"
 
         ${lib.optionalString (versionProbe != null) ''
           # Shared cache per-UID so a long session sees a newer session's poll
