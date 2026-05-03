@@ -10,6 +10,7 @@
   config,
   lib,
   pkgs,
+  nix-env-pkgs ? pkgs,
   ...
 }@args:
 
@@ -63,6 +64,13 @@ in
 {
   options.services.zellij = {
     enable = lib.mkEnableOption "Zellij terminal multiplexer with the nix-env shared config";
+
+    package = lib.mkOption {
+      type = lib.types.package;
+      default = nix-env-pkgs.zellij;
+      defaultText = lib.literalExpression "nix-env-pkgs.zellij";
+      description = "Zellij package. Defaults to nix-env's pinned version so the zellij ABI matches zjstatus.wasm.";
+    };
 
     identityFile = lib.mkOption {
       type = lib.types.str;
@@ -174,7 +182,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ pkgs.zellij ];
+    environment.systemPackages = [ cfg.package ];
 
     environment.variables = {
       ZELLIJ_CONFIG_DIR = "${configDir}";
@@ -205,7 +213,7 @@ in
         serviceConfig = {
           Type = "oneshot";
           RemainAfterExit = true;
-          ExecStop = "${pkgs.zellij}/bin/zellij kill-all-sessions --yes";
+          ExecStop = "${cfg.package}/bin/zellij kill-all-sessions --yes";
         };
       };
     };

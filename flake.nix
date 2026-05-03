@@ -162,10 +162,16 @@
           mkModule =
             file:
             { pkgs, ... }@args:
+            let
+              system = pkgs.stdenv.hostPlatform.system;
+            in
             import file (
               args
               // {
-                nix-env-lib = self.lib.${pkgs.stdenv.hostPlatform.system};
+                nix-env-lib = self.lib.${system};
+                # nix-env's own pinned pkgs — used for ABI-coupled
+                # binaries like zellij (must match zjstatus.wasm).
+                nix-env-pkgs = nixpkgs.legacyPackages.${system};
                 inherit claude-code-nix;
               }
             );
