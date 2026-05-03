@@ -139,26 +139,26 @@
       # NixOS modules. Each consumes `_module.args.nix-env-lib` (set by
       # this very attribute via specialArgs in the consumer's flake) and
       # falls back to importing ./lib directly when used standalone.
-      nixosModules = {
-        zellij =
-          args:
-          import ./nixos/zellij.nix (
-            args // { nix-env-lib = self.lib.${args.pkgs.system or "x86_64-linux"}; }
-          );
-        zellij-zsh =
-          args:
-          import ./nixos/zellij-zsh.nix (
-            args // { nix-env-lib = self.lib.${args.pkgs.system or "x86_64-linux"}; }
-          );
-        zsh =
-          args:
-          import ./nixos/zsh.nix (args // { nix-env-lib = self.lib.${args.pkgs.system or "x86_64-linux"}; });
-        claude =
-          args:
-          import ./nixos/claude.nix (
-            args // { nix-env-lib = self.lib.${args.pkgs.system or "x86_64-linux"}; }
-          );
-      };
+      #
+      # The `{ pkgs, ... }@args` form is load-bearing: NixOS's module
+      # system populates a function-style module's args via `functionArgs`,
+      # which only sees explicitly-named formals. A bare `args: ...`
+      # would be called with the empty special-args set (no `pkgs`, no
+      # `config`, no `lib`), which then bombs as soon as the inner
+      # module destructures any of those.
+      nixosModules =
+        let
+          mkModule =
+            file:
+            { pkgs, ... }@args:
+            import file (args // { nix-env-lib = self.lib.${pkgs.stdenv.hostPlatform.system}; });
+        in
+        {
+          zellij = mkModule ./nixos/zellij.nix;
+          zellij-zsh = mkModule ./nixos/zellij-zsh.nix;
+          zsh = mkModule ./nixos/zsh.nix;
+          claude = mkModule ./nixos/claude.nix;
+        };
 
       # `nix flake check` smoke-tests every output evaluates and the
       # rendered config dir contains the expected files.
