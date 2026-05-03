@@ -79,7 +79,7 @@
         {
           "type": "text",
           "style": "plain",
-          "foreground": "p:mauve",
+          "foreground": "p:overlay0",
           "template": "❯"
         }
       ]
