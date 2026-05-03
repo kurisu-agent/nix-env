@@ -103,15 +103,11 @@ in
     };
 
     environment = {
-      # Match the alias set in lib/zsh.nix (used by non-NixOS consumers
-      # like nix-on-droid). Keeping the two paths in lockstep so users
-      # who switch between them don't lose muscle memory.
-      shellAliases = {
-        ls = "eza --icons";
-        ll = "eza -la --icons --group-directories-first";
-        la = "eza -a --icons";
-        lt = "eza --tree --icons";
-      };
+      # Single source of truth in lib/zsh.nix#ezaAliases — both this
+      # NixOS module and the lib's `mkShellRc` (used by nix-on-droid
+      # and the toolkit derivation) read from the same attr so the
+      # two paths render identical aliases.
+      shellAliases = zshLib.ezaAliases;
 
       etc."xdg/eza/theme.yml".source = ../eza/theme.yml;
 

@@ -37,6 +37,17 @@ let
 
   autosuggestStyle = "fg=#6c7086";
 
+  # Single source of truth for the eza-backed ls family. Both
+  # `mkShellRc` (this file, used by nix-on-droid + the toolkit
+  # derivation) and `nixos/zsh.nix` (the NixOS module) consume this
+  # attr, so the two paths render the same shell aliases.
+  ezaAliases = {
+    ls = "eza --icons";
+    ll = "eza -la --icons --group-directories-first";
+    la = "eza -a --icons";
+    lt = "eza --tree --icons";
+  };
+
   historyOpts = {
     histSize = 10000;
     saveSize = 10000;
@@ -155,10 +166,9 @@ let
         fi
 
         if command -v eza >/dev/null 2>&1; then
-          alias ls='eza --icons'
-          alias ll='eza -la --icons --group-directories-first'
-          alias la='eza -a --icons'
-          alias lt='eza --tree --icons'
+        ${lib.concatStringsSep "\n" (
+          lib.mapAttrsToList (k: v: "  alias ${k}='${v}'") ezaAliases
+        )}
         else
           alias ll='ls -alF'
         fi
@@ -200,6 +210,7 @@ in
   inherit
     syntaxHighlightStyles
     autosuggestStyle
+    ezaAliases
     historyOpts
     mkShellRc
     mkWrappedZsh
