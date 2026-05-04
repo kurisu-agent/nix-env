@@ -125,12 +125,14 @@ let
         short_cwd=$(path_for_display "$cwd")
 
         branch=""
+        short_hash=""
         added=0
         modified=0
         deleted=0
         if [ -n "$cwd" ] && [ -d "$cwd" ]; then
           branch=$(git -C "$cwd" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
           if [ -n "$branch" ]; then
+            short_hash=$(git -C "$cwd" rev-parse --short=4 HEAD 2>/dev/null || true)
             while IFS= read -r line; do
               x="''${line:0:1}"; y="''${line:1:1}"
               case "$x$y" in
@@ -157,6 +159,7 @@ let
         line="''${PINK}''${short_cwd}''${RESET}"
         if [ -n "$branch" ]; then
           line="''${line} ''${LAVENDER}''${branch}''${RESET}"
+          [ -n "$short_hash" ] && line="''${line} ''${LAVENDER}''${short_hash}''${RESET}"
           [ "$added"    -gt 0 ] && line="''${line} ''${GREEN}''${added}''${RESET}"
           [ "$modified" -gt 0 ] && line="''${line} ''${YELLOW}''${modified}''${RESET}"
           [ "$deleted"  -gt 0 ] && line="''${line} ''${RED}''${deleted}''${RESET}"
