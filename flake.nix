@@ -75,6 +75,7 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
           nix-env-lib = mkLib system;
+          nix-env-update = (mkUpdateApp system).nix-env-update;
         in
         {
           # Canonical pre-rendered artefacts. Consumers that don't need
@@ -83,6 +84,13 @@
           nix-env-zellij-status = nix-env-lib.zellij.statusBin;
           nix-env-zjstatus-wasm = nix-env-lib.zellij.zjstatusWasm;
           nix-env-zellij-permissions = nix-env-lib.zellij.permissionsKdl;
+
+          # Standalone update CLI. Bundled into nix-env-toolkit (so a
+          # plain `nix profile install nix-env#nix-env-toolkit` puts it
+          # on PATH) and surfaced as a top-level package so consumer
+          # flakes (e.g. drift's drift-devtools) can symlinkJoin just
+          # the bin without pulling the whole toolkit twice.
+          inherit nix-env-update;
 
           nix-env-omp-theme = pkgs.runCommand "nix-env-omp-theme.json" { } ''
             install -m 0644 ${./omp/theme.json} $out
@@ -119,7 +127,6 @@
                 # of baking the flake-pinned one in.
                 installedVersion = "$(claude --version 2>/dev/null | awk '{print $1}' || printf unknown)";
               };
-              updateBin = (mkUpdateApp system).nix-env-update;
             in
             pkgs.symlinkJoin {
               name = "nix-env-toolkit";
@@ -129,7 +136,7 @@
                 wrappedZsh
                 nix-env-lib.zellij.statusBin
                 claudeStatus
-                updateBin
+                nix-env-update
               ]
               ++ (with pkgs; [
                 # apt-set parity with devtools:2.
