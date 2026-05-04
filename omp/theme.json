@@ -41,7 +41,7 @@
           "type": "git",
           "style": "plain",
           "foreground": "p:lavender",
-          "template": "{{ .HEAD }}{{ if .Hash }} {{ slice .Hash 0 4 }}{{ end }}",
+          "template": "{{ .HEAD }}{{ if .Hash }} {{ trunc 4 .Hash }}{{ end }}",
           "properties": {
             "branch_icon": "",
             "cherry_pick_icon": "",
