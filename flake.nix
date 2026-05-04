@@ -38,6 +38,12 @@
         import ./flake/lint.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };
+
+      mkUpdateApp =
+        system:
+        import ./flake/update.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
     in
     {
       lib = forAllSystems mkLib;
@@ -46,6 +52,7 @@
         system:
         let
           lintApps = mkLintApps system;
+          updateApp = mkUpdateApp system;
         in
         {
           lint = {
@@ -55,6 +62,10 @@
           fmt = {
             type = "app";
             program = "${lintApps.fmt}/bin/nix-fmt";
+          };
+          update = {
+            type = "app";
+            program = "${updateApp.nix-env-update}/bin/nix-env-update";
           };
         }
       );
@@ -108,6 +119,7 @@
                 # of baking the flake-pinned one in.
                 installedVersion = "$(claude --version 2>/dev/null | awk '{print $1}' || printf unknown)";
               };
+              updateBin = (mkUpdateApp system).nix-env-update;
             in
             pkgs.symlinkJoin {
               name = "nix-env-toolkit";
@@ -117,6 +129,7 @@
                 wrappedZsh
                 nix-env-lib.zellij.statusBin
                 claudeStatus
+                updateBin
               ]
               ++ (with pkgs; [
                 # apt-set parity with devtools:2.
