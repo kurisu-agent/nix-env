@@ -36,7 +36,7 @@ let
 
   # mkStatusBin renders a statusline that reads claude session JSON on
   # stdin and prints a one-line prompt: `<path> <branch> <added> <mod>
-  # <del> · <pct>% · [<effort>] <model> · <installed> [→ <latest>]`.
+  # <del> <pct>% [<effort>] <model> <installed> [→ <latest>]`.
   #
   # Args:
   #   installedVersion : string — what the binary reports as the running
@@ -167,15 +167,14 @@ let
         # `pct% effort model` reads as one cluster — the effort glyph
         # acts as the separator between context-pct and model name, so
         # no `·` between them. Effort renders in default colour (no
-        # special peach tint). The `·` before `installed` stays because
-        # version is a distinct semantic group from model. No separator
-        # before `pct` either: `<branch> <added> <modified> <deleted>
-        # <pct>%` already reads as one git+context cluster.
+        # special peach tint). No separator before `pct` either:
+        # `<branch> <added> <modified> <deleted> <pct>%` already reads
+        # as one git+context cluster.
         line="''${line} ''${DIM}''${pct}%''${RESET}"
         ${lib.optionalString (effort != null) ''
           line="''${line} ${effort.glyph}"
         ''}
-        line="''${line} ''${DIM}''${model_lc} · ''${installed}''${RESET}"
+        line="''${line} ''${DIM}''${model_lc} ''${installed}''${RESET}"
 
         ${lib.optionalString (versionProbe != null) ''
           # Shared cache per-UID so a long session sees a newer session's poll
