@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # nix-env-zellij-status — emits zjstatus command field output for the topbar.
 #
+# *Template*: `@pal_NAME@` placeholders are substituted at build time
+# from lib/palette.nix (via lib/zellij.nix#substitutePalette). Tests
+# render the same template at setup() so `bats tests/status.bats`
+# works without a Nix build. Editors/copy-paste preserve the
+# placeholders verbatim.
+#
 # Reads identity from $NIX_ENV_IDENTITY_FILE (default $HOME/.config/zellij/identity.json):
 #   { "color": "<palette name>", "name": "<display>", "icon": "<grapheme>" }
-# All fields optional. Missing/unknown color falls back to overlay0;
+# All fields optional. Missing/unknown color falls back to muted;
 # missing name falls back to `hostname`; missing icon prints nothing.
 #
 # /tmp/zellij-conntype is rewritten by each consumer's shell init on every
@@ -30,21 +36,21 @@ GLYPH_NET_TX=$''  # upload arrow
 
 palette() {
     case "${1:-}" in
-        text)     printf "#CDD6F4" ;;
-        subtext0) printf "#A6ADC8" ;;
-        overlay0) printf "#6C7086" ;;
-        pink)     printf "#F5C2E7" ;;
-        mauve)    printf "#CBA6F7" ;;
-        lavender) printf "#B4BEFE" ;;
-        blue)     printf "#89B4FA" ;;
-        sapphire) printf "#74C7EC" ;;
-        sky)      printf "#89DCEB" ;;
-        teal)     printf "#94E2D5" ;;
-        green)    printf "#A6E3A1" ;;
-        yellow)   printf "#F9E2AF" ;;
-        peach)    printf "#FAB387" ;;
-        red)      printf "#F38BA8" ;;
-        *)        printf "#6C7086" ;;
+        text)     printf "@pal_text@" ;;
+        subtext0) printf "@pal_subtext0@" ;;
+        overlay0) printf "@pal_overlay0@" ;;
+        pink)     printf "@pal_pink@" ;;
+        mauve)    printf "@pal_mauve@" ;;
+        lavender) printf "@pal_lavender@" ;;
+        blue)     printf "@pal_blue@" ;;
+        sapphire) printf "@pal_sapphire@" ;;
+        sky)      printf "@pal_sky@" ;;
+        teal)     printf "@pal_teal@" ;;
+        green)    printf "@pal_green@" ;;
+        yellow)   printf "@pal_yellow@" ;;
+        peach)    printf "@pal_peach@" ;;
+        red)      printf "@pal_red@" ;;
+        *)        printf "@pal_muted@" ;;
     esac
 }
 
@@ -109,17 +115,17 @@ case "${1:-}" in
         else
             cpu_pct=0
         fi
-        color="#6C7086"
-        [ "$cpu_pct" -ge 50 ] && color="#F9E2AF"
-        [ "$cpu_pct" -ge 80 ] && color="#F38BA8"
+        color="@pal_muted@"
+        [ "$cpu_pct" -ge 50 ] && color="@pal_warning@"
+        [ "$cpu_pct" -ge 80 ] && color="@pal_error@"
         printf "#[fg=%s]%s %-2s %s%%" "$color" "$GLYPH_CPU" "$cpus" "$cpu_pct"
         ;;
     mem)
         mem_total=$(free -m | awk '/Mem:/{print int(($2 + 1023) / 1024)}')
         mem_pct=$(free | awk '/Mem:/{printf "%d", $3*100/$2}')
-        color="#6C7086"
-        [ "$mem_pct" -ge 80 ] && color="#F9E2AF"
-        [ "$mem_pct" -ge 95 ] && color="#F38BA8"
+        color="@pal_muted@"
+        [ "$mem_pct" -ge 80 ] && color="@pal_warning@"
+        [ "$mem_pct" -ge 95 ] && color="@pal_error@"
         printf "#[fg=%s]%s %-2s %s%%" "$color" "$GLYPH_MEM" "$mem_total" "$mem_pct"
         ;;
     network)
@@ -130,8 +136,8 @@ case "${1:-}" in
         tx_rate=$(( (tx2 - tx1) / 1024 ))
         if [ "$rx_rate" -gt 1024 ]; then rx_str="$(( rx_rate / 1024 ))M"; else rx_str="${rx_rate}K"; fi
         if [ "$tx_rate" -gt 1024 ]; then tx_str="$(( tx_rate / 1024 ))M"; else tx_str="${tx_rate}K"; fi
-        rx_color="#6C7086"; [ "$rx_rate" -ge 5120 ] && rx_color="#F9E2AF"
-        tx_color="#6C7086"; [ "$tx_rate" -ge 5120 ] && tx_color="#F9E2AF"
+        rx_color="@pal_muted@"; [ "$rx_rate" -ge 5120 ] && rx_color="@pal_warning@"
+        tx_color="@pal_muted@"; [ "$tx_rate" -ge 5120 ] && tx_color="@pal_warning@"
         printf "#[fg=%s]%s %-4s #[fg=%s]%s %-4s" "$rx_color" "$GLYPH_NET_RX" "$rx_str" "$tx_color" "$GLYPH_NET_TX" "$tx_str"
         ;;
     *)

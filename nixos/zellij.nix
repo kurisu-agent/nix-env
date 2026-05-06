@@ -19,13 +19,23 @@ let
 
   # Resolve the per-system lib. Prefer an explicit `_module.args.nix-env-lib`
   # (set by flake.nix) but fall back to importing it directly so this module
-  # is testable in isolation with `nixos-rebuild build-vm`.
+  # is testable in isolation with `nixos-rebuild build-vm`. When the caller
+  # sets `paletteOverride`, always re-import so the override propagates into
+  # every rendered artifact (status binary, theme, layouts).
   nix-env-lib =
-    args.nix-env-lib or (import ../lib {
-      nixpkgs = pkgs.path or <nixpkgs>;
-      inherit (pkgs) system;
-      repoRoot = ../.;
-    });
+    if cfg.paletteOverride == { } then
+      args.nix-env-lib or (import ../lib {
+        nixpkgs = pkgs.path or <nixpkgs>;
+        inherit (pkgs) system;
+        repoRoot = ../.;
+      })
+    else
+      import ../lib {
+        nixpkgs = pkgs.path or <nixpkgs>;
+        inherit (pkgs) system;
+        repoRoot = ../.;
+        inherit (cfg) paletteOverride;
+      };
 
   zellij-lib = nix-env-lib.zellij;
 
@@ -70,6 +80,22 @@ in
 {
   options.services.zellij = {
     enable = lib.mkEnableOption "Zellij terminal multiplexer with the nix-env shared config";
+
+    paletteOverride = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = { };
+      example = {
+        accent = "#FF0099";
+        warning = "#FFA500";
+      };
+      description = ''
+        Partial-merge palette override applied to lib/palette.nix.
+        Keys can be Catppuccin names (`green`, `pink`, `mauve`, …) or
+        role aliases (`accent`, `success`, `warning`, …). Roles
+        resolve after the merge, so overriding a base name (e.g.
+        `green`) also retints every role that points at it.
+      '';
+    };
 
     package = lib.mkOption {
       type = lib.types.package;

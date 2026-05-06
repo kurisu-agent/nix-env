@@ -26,18 +26,24 @@ let
   cfg = config.services.zsh;
 
   nix-env-lib =
-    args.nix-env-lib or (import ../lib {
-      nixpkgs = pkgs.path or <nixpkgs>;
-      inherit (pkgs) system;
-      repoRoot = ../.;
-    });
+    if cfg.paletteOverride == { } then
+      args.nix-env-lib or (import ../lib {
+        nixpkgs = pkgs.path or <nixpkgs>;
+        inherit (pkgs) system;
+        repoRoot = ../.;
+      })
+    else
+      import ../lib {
+        nixpkgs = pkgs.path or <nixpkgs>;
+        inherit (pkgs) system;
+        repoRoot = ../.;
+        inherit (cfg) paletteOverride;
+      };
 
   zshLib = nix-env-lib.zsh;
   zellijLib = nix-env-lib.zellij;
-
-  ompTheme = pkgs.runCommand "nix-env-omp-theme.json" { } ''
-    install -m 0644 ${../omp/theme.json} $out
-  '';
+  ompTheme = nix-env-lib.ompTheme;
+  ezaTheme = nix-env-lib.ezaTheme;
 in
 {
   options.services.zsh = {
@@ -49,6 +55,18 @@ in
       description = ''
         Wire `programs.fzf.{keybindings, fuzzyCompletion}` so Ctrl-T /
         Ctrl-R / Alt-C and `**<TAB>` work in interactive shells.
+      '';
+    };
+
+    paletteOverride = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = { };
+      example = { accent = "#FF0099"; };
+      description = ''
+        Partial-merge palette override applied to lib/palette.nix.
+        Affects the OMP prompt theme, eza file-listing colors, and zsh
+        syntax highlighting / autosuggest styles. See
+        `services.zellij.paletteOverride` for naming details.
       '';
     };
   };
@@ -109,7 +127,7 @@ in
       # two paths render identical aliases.
       shellAliases = zshLib.ezaAliases;
 
-      etc."xdg/eza/theme.yml".source = ../eza/theme.yml;
+      etc."xdg/eza/theme.yml".source = ezaTheme;
 
       systemPackages = with pkgs; [
         oh-my-posh

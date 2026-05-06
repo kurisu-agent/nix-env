@@ -1,128 +1,132 @@
+// *Template*: `@pal_NAME_rgb@` placeholders (space-separated R G B
+// triples) are substituted at build time from lib/palette.nix via
+// lib/zellij.nix#substitutePalette. Edit by referencing palette
+// names — never inline literal RGB triples.
 themes {
     catppuccin_mocha {
         text_unselected {
-            base 205 214 244       // text #cdd6f4
-            background 24 24 37    // mantle #181825
-            emphasis_0 250 179 135 // peach #fab387
-            emphasis_1 137 220 235 // sapphire #89dceb
-            emphasis_2 166 227 161 // green #a6e3a1
-            emphasis_3 245 194 231 // pink #f5c2e7
+            base @pal_text_rgb@
+            background @pal_mantle_rgb@
+            emphasis_0 @pal_peach_rgb@
+            emphasis_1 @pal_sapphire_rgb@
+            emphasis_2 @pal_green_rgb@
+            emphasis_3 @pal_pink_rgb@
         }
         text_selected {
-            base 205 214 244       // text #cdd6f4
-            background 88 91 112   // overlay0 #585b70
-            emphasis_0 250 179 135
-            emphasis_1 137 220 235
-            emphasis_2 166 227 161
-            emphasis_3 245 194 231
+            base @pal_text_rgb@
+            background @pal_surface2_rgb@
+            emphasis_0 @pal_peach_rgb@
+            emphasis_1 @pal_sapphire_rgb@
+            emphasis_2 @pal_green_rgb@
+            emphasis_3 @pal_pink_rgb@
         }
         ribbon_selected {
-            base 24 24 37          // mantle
-            background 166 227 161 // green
-            emphasis_0 243 139 168 // red #f38ba8
-            emphasis_1 250 179 135 // peach
-            emphasis_2 245 194 231 // pink
-            emphasis_3 137 180 250 // blue #89b4fa
+            base @pal_mantle_rgb@
+            background @pal_green_rgb@
+            emphasis_0 @pal_red_rgb@
+            emphasis_1 @pal_peach_rgb@
+            emphasis_2 @pal_pink_rgb@
+            emphasis_3 @pal_blue_rgb@
         }
         ribbon_unselected {
-            base 24 24 37
-            background 205 214 244
-            emphasis_0 243 139 168
-            emphasis_1 205 214 244
-            emphasis_2 137 180 250
-            emphasis_3 245 194 231
+            base @pal_mantle_rgb@
+            background @pal_text_rgb@
+            emphasis_0 @pal_red_rgb@
+            emphasis_1 @pal_text_rgb@
+            emphasis_2 @pal_blue_rgb@
+            emphasis_3 @pal_pink_rgb@
         }
         table_title {
-            base 166 227 161
-            background 0
-            emphasis_0 250 179 135
-            emphasis_1 137 220 235
-            emphasis_2 166 227 161
-            emphasis_3 245 194 231
+            base @pal_green_rgb@
+            background @pal_crust_rgb@
+            emphasis_0 @pal_peach_rgb@
+            emphasis_1 @pal_sapphire_rgb@
+            emphasis_2 @pal_green_rgb@
+            emphasis_3 @pal_pink_rgb@
         }
         table_cell_selected {
-            base 205 214 244
-            background 88 91 112
-            emphasis_0 250 179 135
-            emphasis_1 137 220 235
-            emphasis_2 166 227 161
-            emphasis_3 245 194 231
+            base @pal_text_rgb@
+            background @pal_surface2_rgb@
+            emphasis_0 @pal_peach_rgb@
+            emphasis_1 @pal_sapphire_rgb@
+            emphasis_2 @pal_green_rgb@
+            emphasis_3 @pal_pink_rgb@
         }
         table_cell_unselected {
-            base 205 214 244
-            background 24 24 37
-            emphasis_0 250 179 135
-            emphasis_1 137 220 235
-            emphasis_2 166 227 161
-            emphasis_3 245 194 231
+            base @pal_text_rgb@
+            background @pal_mantle_rgb@
+            emphasis_0 @pal_peach_rgb@
+            emphasis_1 @pal_sapphire_rgb@
+            emphasis_2 @pal_green_rgb@
+            emphasis_3 @pal_pink_rgb@
         }
         list_selected {
-            base 205 214 244
-            background 88 91 112
-            emphasis_0 250 179 135
-            emphasis_1 137 220 235
-            emphasis_2 166 227 161
-            emphasis_3 245 194 231
+            base @pal_text_rgb@
+            background @pal_surface2_rgb@
+            emphasis_0 @pal_peach_rgb@
+            emphasis_1 @pal_sapphire_rgb@
+            emphasis_2 @pal_green_rgb@
+            emphasis_3 @pal_pink_rgb@
         }
         list_unselected {
-            base 205 214 244
-            background 24 24 37
-            emphasis_0 250 179 135
-            emphasis_1 137 220 235
-            emphasis_2 166 227 161
-            emphasis_3 245 194 231
+            base @pal_text_rgb@
+            background @pal_mantle_rgb@
+            emphasis_0 @pal_peach_rgb@
+            emphasis_1 @pal_sapphire_rgb@
+            emphasis_2 @pal_green_rgb@
+            emphasis_3 @pal_pink_rgb@
         }
         frame_selected {
-            base 166 227 161       // green #a6e3a1
-            background 0
-            emphasis_0 250 179 135
-            emphasis_1 137 220 235
-            emphasis_2 245 194 231
-            emphasis_3 0
+            base @pal_green_rgb@
+            background @pal_crust_rgb@
+            emphasis_0 @pal_peach_rgb@
+            emphasis_1 @pal_sapphire_rgb@
+            emphasis_2 @pal_pink_rgb@
+            emphasis_3 @pal_crust_rgb@
         }
         frame_unselected {
-            base 69 71 90          // surface1 #45475a  (custom: dimmer than upstream)
-            background 30 30 46    // base #1e1e2e
-            emphasis_0 49 50 68    // surface0 #313244
-            emphasis_1 49 50 68
-            emphasis_2 49 50 68
-            emphasis_3 49 50 68
+            base @pal_surface1_rgb@
+            background @pal_base_rgb@
+            emphasis_0 @pal_surface0_rgb@
+            emphasis_1 @pal_surface0_rgb@
+            emphasis_2 @pal_surface0_rgb@
+            emphasis_3 @pal_surface0_rgb@
         }
         frame_highlight {
-            base 250 179 135       // peach
-            background 0
-            emphasis_0 245 194 231
-            emphasis_1 250 179 135
-            emphasis_2 250 179 135
-            emphasis_3 250 179 135
+            base @pal_peach_rgb@
+            background @pal_crust_rgb@
+            emphasis_0 @pal_pink_rgb@
+            emphasis_1 @pal_peach_rgb@
+            emphasis_2 @pal_peach_rgb@
+            emphasis_3 @pal_peach_rgb@
         }
         exit_code_success {
-            base 166 227 161
-            background 0
-            emphasis_0 137 220 235
-            emphasis_1 24 24 37
-            emphasis_2 245 194 231
-            emphasis_3 137 180 250
+            base @pal_green_rgb@
+            background @pal_crust_rgb@
+            emphasis_0 @pal_sapphire_rgb@
+            emphasis_1 @pal_mantle_rgb@
+            emphasis_2 @pal_pink_rgb@
+            emphasis_3 @pal_blue_rgb@
         }
         exit_code_error {
-            base 243 139 168
-            background 0
-            emphasis_0 249 226 175
-            emphasis_1 0
-            emphasis_2 0
-            emphasis_3 0
+            base @pal_red_rgb@
+            background @pal_crust_rgb@
+            emphasis_0 @pal_yellow_rgb@
+            emphasis_1 @pal_crust_rgb@
+            emphasis_2 @pal_crust_rgb@
+            emphasis_3 @pal_crust_rgb@
         }
         multiplayer_user_colors {
-            player_1 245 194 231
-            player_2 137 180 250
-            player_3 0
-            player_4 249 226 175
-            player_5 137 220 235
-            player_6 0
-            player_7 243 139 168
-            player_8 0
-            player_9 0
-            player_10 0
+            player_1 @pal_pink_rgb@
+            player_2 @pal_blue_rgb@
+            player_3 @pal_crust_rgb@
+            player_4 @pal_yellow_rgb@
+            player_5 @pal_sapphire_rgb@
+            player_6 @pal_crust_rgb@
+            player_7 @pal_red_rgb@
+            player_8 @pal_crust_rgb@
+            player_9 @pal_crust_rgb@
+            player_10 @pal_crust_rgb@
         }
     }
 }

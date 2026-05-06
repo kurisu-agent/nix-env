@@ -1,104 +1,108 @@
 # Catppuccin Mocha theme for eza
-# From: https://github.com/catppuccin/eza
+# Originally: https://github.com/catppuccin/eza
+#
+# *Template*: `@pal_NAME@` placeholders are substituted at build time
+# from lib/palette.nix via lib/default.nix#substitutePalette. Edit by
+# referencing palette names — never inline literal hex.
 
 colourful: true
 
 filekinds:
-  normal: {foreground: "#cdd6f4"}
-  directory: {foreground: "#cba6f7"}
-  symlink: {foreground: "#89b4fa"}
-  pipe: {foreground: "#bac2de"}
-  block_device: {foreground: "#eba0ac"}
-  char_device: {foreground: "#eba0ac"}
-  socket: {foreground: "#bac2de"}
-  special: {foreground: "#cba6f7"}
-  executable: {foreground: "#a6e3a1"}
-  mount_point: {foreground: "#94e2d5"}
+  normal: {foreground: "@pal_text@"}
+  directory: {foreground: "@pal_mauve@"}
+  symlink: {foreground: "@pal_blue@"}
+  pipe: {foreground: "@pal_subtext1@"}
+  block_device: {foreground: "@pal_maroon@"}
+  char_device: {foreground: "@pal_maroon@"}
+  socket: {foreground: "@pal_subtext1@"}
+  special: {foreground: "@pal_mauve@"}
+  executable: {foreground: "@pal_green@"}
+  mount_point: {foreground: "@pal_teal@"}
 
 perms:
-  user_read: {foreground: "#f38ba8", is_bold: true}
-  user_write: {foreground: "#f9e2af", is_bold: true}
-  user_execute_file: {foreground: "#a6e3a1", is_bold: true}
-  user_execute_other: {foreground: "#a6e3a1", is_bold: true}
-  group_read: {foreground: "#f38ba8"}
-  group_write: {foreground: "#f9e2af"}
-  group_execute: {foreground: "#a6e3a1"}
-  other_read: {foreground: "#f38ba8"}
-  other_write: {foreground: "#f9e2af"}
-  other_execute: {foreground: "#a6e3a1"}
-  special_user_file: {foreground: "#cba6f7"}
-  special_other: {foreground: "#7f849c"}
-  attribute: {foreground: "#9399b2"}
+  user_read: {foreground: "@pal_red@", is_bold: true}
+  user_write: {foreground: "@pal_yellow@", is_bold: true}
+  user_execute_file: {foreground: "@pal_green@", is_bold: true}
+  user_execute_other: {foreground: "@pal_green@", is_bold: true}
+  group_read: {foreground: "@pal_red@"}
+  group_write: {foreground: "@pal_yellow@"}
+  group_execute: {foreground: "@pal_green@"}
+  other_read: {foreground: "@pal_red@"}
+  other_write: {foreground: "@pal_yellow@"}
+  other_execute: {foreground: "@pal_green@"}
+  special_user_file: {foreground: "@pal_mauve@"}
+  special_other: {foreground: "@pal_overlay1@"}
+  attribute: {foreground: "@pal_overlay2@"}
 
 size:
-  major: {foreground: "#a6adc8"}
-  minor: {foreground: "#89dceb"}
-  number_byte: {foreground: "#bac2de"}
-  number_kilo: {foreground: "#a6adc8"}
-  number_mega: {foreground: "#89b4fa"}
-  number_giga: {foreground: "#cba6f7"}
-  number_huge: {foreground: "#cba6f7"}
-  unit_byte: {foreground: "#a6adc8"}
-  unit_kilo: {foreground: "#89dceb"}
-  unit_mega: {foreground: "#cba6f7"}
-  unit_giga: {foreground: "#cba6f7"}
-  unit_huge: {foreground: "#94e2d5"}
+  major: {foreground: "@pal_subtext0@"}
+  minor: {foreground: "@pal_sky@"}
+  number_byte: {foreground: "@pal_subtext1@"}
+  number_kilo: {foreground: "@pal_subtext0@"}
+  number_mega: {foreground: "@pal_blue@"}
+  number_giga: {foreground: "@pal_mauve@"}
+  number_huge: {foreground: "@pal_mauve@"}
+  unit_byte: {foreground: "@pal_subtext0@"}
+  unit_kilo: {foreground: "@pal_sky@"}
+  unit_mega: {foreground: "@pal_mauve@"}
+  unit_giga: {foreground: "@pal_mauve@"}
+  unit_huge: {foreground: "@pal_teal@"}
 
 users:
-  user_you: {foreground: "#cdd6f4"}
-  user_root: {foreground: "#f38ba8"}
-  user_other: {foreground: "#eba0ac"}
-  group_yours: {foreground: "#a6adc8"}
-  group_other: {foreground: "#9399b2"}
-  group_root: {foreground: "#f38ba8"}
+  user_you: {foreground: "@pal_text@"}
+  user_root: {foreground: "@pal_red@"}
+  user_other: {foreground: "@pal_maroon@"}
+  group_yours: {foreground: "@pal_subtext0@"}
+  group_other: {foreground: "@pal_overlay2@"}
+  group_root: {foreground: "@pal_red@"}
 
 links:
-  normal: {foreground: "#89b4fa"}
-  multi_link_file: {foreground: "#89b4fa"}
+  normal: {foreground: "@pal_blue@"}
+  multi_link_file: {foreground: "@pal_blue@"}
 
 git:
-  new: {foreground: "#a6e3a1"}
-  modified: {foreground: "#f9e2af"}
-  deleted: {foreground: "#eba0ac"}
-  renamed: {foreground: "#94e2d5"}
-  typechange: {foreground: "#f5c2e7"}
-  ignored: {foreground: "#7f849c"}
-  conflicted: {foreground: "#fab387"}
+  new: {foreground: "@pal_green@"}
+  modified: {foreground: "@pal_yellow@"}
+  deleted: {foreground: "@pal_maroon@"}
+  renamed: {foreground: "@pal_teal@"}
+  typechange: {foreground: "@pal_pink@"}
+  ignored: {foreground: "@pal_overlay1@"}
+  conflicted: {foreground: "@pal_peach@"}
 
 git_repo:
-  branch_main: {foreground: "#a6adc8"}
-  branch_other: {foreground: "#cba6f7"}
-  git_clean: {foreground: "#a6e3a1"}
-  git_dirty: {foreground: "#eba0ac"}
+  branch_main: {foreground: "@pal_subtext0@"}
+  branch_other: {foreground: "@pal_mauve@"}
+  git_clean: {foreground: "@pal_green@"}
+  git_dirty: {foreground: "@pal_maroon@"}
 
 security_context:
-  colon: {foreground: "#6c7086"}
-  user: {foreground: "#7f849c"}
-  role: {foreground: "#cba6f7"}
-  typ: {foreground: "#585b70"}
-  range: {foreground: "#cba6f7"}
+  colon: {foreground: "@pal_overlay0@"}
+  user: {foreground: "@pal_overlay1@"}
+  role: {foreground: "@pal_mauve@"}
+  typ: {foreground: "@pal_surface2@"}
+  range: {foreground: "@pal_mauve@"}
 
 file_type:
-  image: {foreground: "#f9e2af"}
-  video: {foreground: "#f38ba8"}
-  music: {foreground: "#a6e3a1"}
-  lossless: {foreground: "#94e2d5"}
-  crypto: {foreground: "#7f849c"}
-  document: {foreground: "#cdd6f4"}
-  compressed: {foreground: "#f5c2e7"}
-  temp: {foreground: "#eba0ac"}
-  compiled: {foreground: "#74c7ec"}
-  source: {foreground: "#89b4fa"}
+  image: {foreground: "@pal_yellow@"}
+  video: {foreground: "@pal_red@"}
+  music: {foreground: "@pal_green@"}
+  lossless: {foreground: "@pal_teal@"}
+  crypto: {foreground: "@pal_overlay1@"}
+  document: {foreground: "@pal_text@"}
+  compressed: {foreground: "@pal_pink@"}
+  temp: {foreground: "@pal_maroon@"}
+  compiled: {foreground: "@pal_sapphire@"}
+  source: {foreground: "@pal_blue@"}
 
-punctuation: {foreground: "#6c7086"}
-date: {foreground: "#f9e2af"}
-inode: {foreground: "#a6adc8"}
-blocks: {foreground: "#6c7086"}
-header: {foreground: "#cdd6f4"}
-octal: {foreground: "#94e2d5"}
-flags: {foreground: "#cba6f7"}
+punctuation: {foreground: "@pal_overlay0@"}
+date: {foreground: "@pal_yellow@"}
+inode: {foreground: "@pal_subtext0@"}
+blocks: {foreground: "@pal_overlay0@"}
+header: {foreground: "@pal_text@"}
+octal: {foreground: "@pal_teal@"}
+flags: {foreground: "@pal_mauve@"}
 
-symlink_path: {foreground: "#89dceb"}
-control_char: {foreground: "#74c7ec"}
-broken_symlink: {foreground: "#f38ba8"}
-broken_path_overlay: {foreground: "#585b70"}
+symlink_path: {foreground: "@pal_sky@"}
+control_char: {foreground: "@pal_sapphire@"}
+broken_symlink: {foreground: "@pal_red@"}
+broken_path_overlay: {foreground: "@pal_surface2@"}

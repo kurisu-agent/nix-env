@@ -2,13 +2,24 @@
 # permissions file, and the matching wrapped zellij. Repo root is passed
 # in so the .kdl / .sh sources can be found regardless of how this module
 # is imported.
+#
+# Color templating: the source files under zellij/ are *templates* with
+# `@pal_NAME@` (hex), `@pal_NAME_rgb@` (space-separated RGB), and
+# `@pal_NAME_rgb_csv@` (semicolon-separated RGB) placeholders, where
+# NAME is any key in the palette (Catppuccin name or role alias). They
+# render against the (possibly overridden) palette before being baked
+# into the config dir / shell-application binary.
 {
   pkgs,
   lib,
   repoRoot,
+  palette,
+  paletteHelpers,
 }:
 
 let
+  inherit (paletteHelpers) substitutePalette paletteSedArgs;
+
   zjstatusVersion = lib.removeSuffix "\n" (builtins.readFile (repoRoot + "/zellij/zjstatus-version"));
 
   zjstatusWasm = pkgs.fetchurl {
@@ -27,6 +38,10 @@ let
     }
   '';
 
+  # status.sh is a template — palette placeholders are resolved at
+  # build time so the rendered binary contains literal hex values
+  # (no runtime substitution needed). Tests render the same template
+  # at setup() to keep raw bats execution working.
   defaultStatusBin = pkgs.writeShellApplication {
     name = "nix-env-zellij-status";
     runtimeInputs = with pkgs; [
@@ -38,13 +53,20 @@ let
       jq
       inetutils
     ];
-    text = builtins.readFile (repoRoot + "/zellij/status.sh");
+    text = substitutePalette (builtins.readFile (repoRoot + "/zellij/status.sh"));
   };
 
+  # Theme is also a template — RGB triples come from palette so retinting
+  # the project (e.g. paletteOverride in mkLib) re-renders the theme.
+  themeKdl = pkgs.writeText "nix-env-zellij-theme.kdl" (
+    substitutePalette (builtins.readFile (repoRoot + "/zellij/themes/catppuccin_mocha.kdl"))
+  );
+
   # mkConfigDir produces a derivation suitable as `ZELLIJ_CONFIG_DIR`.
-  # Substitutes __ZJSTATUS__ / __STATUS_CMD__ / __TIMEZONE__ in the layout
-  # files. `withHelpLayout` toggles `layouts/help.kdl` (the variant that
-  # adds zellij's built-in status-bar plugin at the bottom).
+  # Substitutes __ZJSTATUS__ / __STATUS_CMD__ / __TIMEZONE__ *and* the
+  # palette placeholders in the layout files. `withHelpLayout` toggles
+  # `layouts/help.kdl` (the variant that adds zellij's built-in
+  # status-bar plugin at the bottom).
   mkConfigDir =
     {
       identityFile ? "$HOME/.config/zellij/identity.json",
@@ -60,6 +82,7 @@ let
             -e 's|__ZJSTATUS__|${zjstatusWasm}|g' \
             -e 's|__STATUS_CMD__|${statusBin}/bin/nix-env-zellij-status|g' \
             -e 's|__TIMEZONE__|${timezone}|g' \
+            ${paletteSedArgs} \
             ${src} > $out
         '';
       defaultLayout = sub (repoRoot + "/zellij/layouts/default.kdl");
@@ -80,7 +103,7 @@ let
       ''
         mkdir -p $out/layouts $out/themes
         install -m 0644 ${repoRoot + "/zellij/config.kdl"}                $out/config.kdl
-        install -m 0644 ${repoRoot + "/zellij/themes/catppuccin_mocha.kdl"} $out/themes/catppuccin_mocha.kdl
+        install -m 0644 ${themeKdl}                                       $out/themes/catppuccin_mocha.kdl
         install -m 0644 ${defaultLayout}                                  $out/layouts/default.kdl
         install -m 0644 ${swapLayout}                                     $out/layouts/default.swap.kdl
         ${if withHelpLayout then "install -m 0644 ${helpLayout} $out/layouts/help.kdl" else ""}

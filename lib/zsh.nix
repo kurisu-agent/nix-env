@@ -15,27 +15,30 @@
   pkgs,
   lib,
   zellij,
+  palette,
 }:
 
 let
   # Raw values — used both by `mkShellRc` below and by NixOS modules that
   # want to splice individual pieces into `programs.zsh.*` options.
+  # Colors are role-mapped (info/accent/warning/error/muted) so retinting
+  # the project happens via lib/palette.nix, not here.
   syntaxHighlightStyles = {
-    command = "fg=#89b4fa";
-    builtin = "fg=#89b4fa";
-    alias = "fg=#a6e3a1";
-    function = "fg=#89b4fa";
-    path = "fg=#f9e2af,underline";
-    globbing = "fg=#f5c2e7";
-    single-quoted-argument = "fg=#a6e3a1";
-    double-quoted-argument = "fg=#a6e3a1";
-    dollar-quoted-argument = "fg=#a6e3a1";
-    comment = "fg=#6c7086";
-    arg0 = "fg=#89b4fa";
-    unknown-token = "fg=#f38ba8";
+    command = "fg=${palette.info}";
+    builtin = "fg=${palette.info}";
+    alias = "fg=${palette.accent}";
+    function = "fg=${palette.info}";
+    path = "fg=${palette.warning},underline";
+    globbing = "fg=${palette.pink}";
+    single-quoted-argument = "fg=${palette.accent}";
+    double-quoted-argument = "fg=${palette.accent}";
+    dollar-quoted-argument = "fg=${palette.accent}";
+    comment = "fg=${palette.muted}";
+    arg0 = "fg=${palette.info}";
+    unknown-token = "fg=${palette.error}";
   };
 
-  autosuggestStyle = "fg=#6c7086";
+  autosuggestStyle = "fg=${palette.muted}";
 
   # Single source of truth for the eza-backed ls family. Both
   # `mkShellRc` (this file, used by nix-on-droid + the toolkit

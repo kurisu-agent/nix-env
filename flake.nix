@@ -26,11 +26,17 @@
       ];
       forAllSystems = f: nixpkgs.lib.genAttrs systems f;
 
+      # Top-level palette override knob. Consumers that want the whole
+      # project retinted set this when consuming the flake; flake-level
+      # consumers can also re-call mkLib with their own override.
+      defaultPaletteOverride = { };
+
       mkLib =
         system:
         import ./lib {
           inherit nixpkgs system;
           repoRoot = ./.;
+          paletteOverride = defaultPaletteOverride;
         };
 
       mkLintApps =
@@ -92,12 +98,8 @@
           # the bin without pulling the whole toolkit twice.
           inherit nix-env-update;
 
-          nix-env-omp-theme = pkgs.runCommand "nix-env-omp-theme.json" { } ''
-            install -m 0644 ${./omp/theme.json} $out
-          '';
-          nix-env-eza-theme = pkgs.runCommand "nix-env-eza-theme.yml" { } ''
-            install -m 0644 ${./eza/theme.yml} $out
-          '';
+          nix-env-omp-theme = nix-env-lib.ompTheme;
+          nix-env-eza-theme = nix-env-lib.ezaTheme;
 
           # nix-env-toolkit bundles everything a shell session needs into
           # a single `nix profile install` target. Wrapped zellij + zsh
@@ -111,11 +113,8 @@
           # symlinkJoin those on top.
           nix-env-toolkit =
             let
-              ompTheme = pkgs.runCommand "nix-env-omp-theme.json" { } ''
-                install -m 0644 ${./omp/theme.json} $out
-              '';
               shellRc = nix-env-lib.zsh.mkShellRc {
-                ompThemeJson = ompTheme;
+                ompThemeJson = nix-env-lib.ompTheme;
               };
               wrappedZellij = nix-env-lib.zellij.mkWrappedBin {
                 configDir = "${shellRc}/share/nix-env/zellij";

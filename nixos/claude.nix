@@ -13,11 +13,19 @@
 let
   cfg = config.services.claude-code;
   nix-env-lib =
-    args.nix-env-lib or (import ../lib {
-      nixpkgs = pkgs.path or <nixpkgs>;
-      inherit (pkgs) system;
-      repoRoot = ../.;
-    });
+    if cfg.paletteOverride == { } then
+      args.nix-env-lib or (import ../lib {
+        nixpkgs = pkgs.path or <nixpkgs>;
+        inherit (pkgs) system;
+        repoRoot = ../.;
+      })
+    else
+      import ../lib {
+        nixpkgs = pkgs.path or <nixpkgs>;
+        inherit (pkgs) system;
+        repoRoot = ../.;
+        inherit (cfg) paletteOverride;
+      };
 
   claudeStatus = nix-env-lib.claude.mkStatusBin {
     installedVersion = cfg.package.version;
@@ -32,6 +40,18 @@ in
 {
   options.services.claude-code = {
     enable = lib.mkEnableOption "Claude Code with the nix-env statusline + settings";
+
+    paletteOverride = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = { };
+      example = { accent = "#FF0099"; };
+      description = ''
+        Partial-merge palette override applied to lib/palette.nix.
+        Affects the rendered statusline ANSI escapes (path, branch,
+        added/modified/deleted counters). See
+        `services.zellij.paletteOverride` for naming details.
+      '';
+    };
 
     package = lib.mkOption {
       type = lib.types.package;

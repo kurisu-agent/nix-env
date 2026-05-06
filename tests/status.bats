@@ -7,9 +7,51 @@
 # Or via Nix without installing bats globally:
 #
 #   nix shell nixpkgs#bats -c bats tests/status.bats
+#
+# zellij/status.sh is a template (`@pal_NAME@` placeholders). setup()
+# parses lib/palette.nix and substitutes the placeholders into a
+# temp-dir copy that each test runs against, mirroring what
+# lib/zellij.nix#substitutePalette does at Nix build time. No Nix
+# dependency at test time — the parser is pure awk/bash.
+
+# Extract `name = "#hex";` literals first, then resolve `name = base.X;`
+# role aliases by looking up the already-loaded Catppuccin name. Sets
+# the global PAL associative array.
+load_palette() {
+    local palette_nix="$1"
+    declare -gA PAL=()
+
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^[[:space:]]*([a-zA-Z][a-zA-Z0-9_]*)[[:space:]]*=[[:space:]]*\"(#[0-9A-Fa-f]+)\"\; ]]; then
+            PAL["${BASH_REMATCH[1]}"]="${BASH_REMATCH[2]}"
+        fi
+    done < "$palette_nix"
+
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^[[:space:]]*([a-zA-Z][a-zA-Z0-9_]*)[[:space:]]*=[[:space:]]*base\.([a-zA-Z][a-zA-Z0-9_]*)\; ]]; then
+            local role="${BASH_REMATCH[1]}"
+            local target="${BASH_REMATCH[2]}"
+            PAL["$role"]="${PAL[$target]}"
+        fi
+    done < "$palette_nix"
+}
+
+# Render a status.sh template against the loaded palette.
+render_status_template() {
+    local src="$1" dst="$2"
+    local sed_args=()
+    local name
+    for name in "${!PAL[@]}"; do
+        sed_args+=( -e "s|@pal_${name}@|${PAL[$name]}|g" )
+    done
+    sed "${sed_args[@]}" "$src" > "$dst"
+}
 
 setup() {
-  STATUS_SH="$BATS_TEST_DIRNAME/../zellij/status.sh"
+  REPO_ROOT="$BATS_TEST_DIRNAME/.."
+  load_palette "$REPO_ROOT/lib/palette.nix"
+  STATUS_SH="$BATS_TEST_TMPDIR/status.sh"
+  render_status_template "$REPO_ROOT/zellij/status.sh" "$STATUS_SH"
   TMPDIR_LOCAL=$(mktemp -d)
   export NIX_ENV_IDENTITY_FILE="$TMPDIR_LOCAL/identity.json"
   # Neutralise system signals so cases don't depend on the runner's host.
@@ -31,27 +73,27 @@ teardown() {
 JSON
   run bash "$STATUS_SH" identity
   [ "$status" -eq 0 ]
-  [[ "$output" == *"#94E2D5"* ]]
+  [[ "$output" == *"${PAL[teal]}"* ]]
   [[ "$output" == *"+ neo@dev"* ]]
 }
 
-@test "identity: missing color falls back to overlay0" {
+@test "identity: missing color falls back to muted" {
   cat > "$NIX_ENV_IDENTITY_FILE" <<'JSON'
 { "name": "alice" }
 JSON
   run bash "$STATUS_SH" identity
   [ "$status" -eq 0 ]
-  [[ "$output" == *"#6C7086"* ]]
+  [[ "$output" == *"${PAL[muted]}"* ]]
   [[ "$output" == *"alice"* ]]
 }
 
-@test "identity: unknown color falls back to overlay0" {
+@test "identity: unknown color falls back to muted" {
   cat > "$NIX_ENV_IDENTITY_FILE" <<'JSON'
 { "color": "fuchsia", "name": "alice" }
 JSON
   run bash "$STATUS_SH" identity
   [ "$status" -eq 0 ]
-  [[ "$output" == *"#6C7086"* ]]
+  [[ "$output" == *"${PAL[muted]}"* ]]
 }
 
 @test "identity: missing icon emits no prefix" {
@@ -119,7 +161,7 @@ JSON
 JSON
   run bash "$STATUS_SH" user
   [ "$status" -eq 0 ]
-  [[ "$output" == *"#B4BEFE"* ]]
+  [[ "$output" == *"${PAL[lavender]}"* ]]
   [[ "$output" == *"rojo"* ]]
 }
 
@@ -135,4 +177,14 @@ JSON
 @test "unknown field exits non-zero" {
   run bash "$STATUS_SH" not-a-field
   [ "$status" -ne 0 ]
+}
+
+@test "palette: roles resolve to underlying Catppuccin colors" {
+  # Sanity check the parser: accent should equal green (per palette.nix
+  # role mapping), success should equal teal, etc.
+  [ "${PAL[accent]}" = "${PAL[green]}" ]
+  [ "${PAL[success]}" = "${PAL[teal]}" ]
+  [ "${PAL[warning]}" = "${PAL[yellow]}" ]
+  [ "${PAL[error]}" = "${PAL[red]}" ]
+  [ "${PAL[muted]}" = "${PAL[overlay0]}" ]
 }

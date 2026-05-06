@@ -3,35 +3,39 @@
 {
   pkgs,
   palette,
+  colorHelpers,
   lib,
 }:
 
 let
+  inherit (colorHelpers) hexToRgbCsv;
+
   # MDI circle_slice family rendered as a heat map for the configured
   # effort level. Effort isn't exposed in the statusline stdin JSON
   # (anthropics/claude-code#36187, #31415), so this reflects the *configured*
-  # level — not session overrides from `/effort`. RGBs match palette.nix.
+  # level — not session overrides from `/effort`. RGBs derive from
+  # palette.nix so retinting one shade also retints the heat map.
   effortGlyphs = {
     low = {
       glyph = "󰪞";
-      rgb = "166;227;161";
-    }; # 1/8 · green
+      rgb = hexToRgbCsv palette.green;
+    }; # 1/8
     medium = {
       glyph = "󰪠";
-      rgb = "249;226;175";
-    }; # 3/8 · yellow
+      rgb = hexToRgbCsv palette.yellow;
+    }; # 3/8
     high = {
       glyph = "󰪢";
-      rgb = "250;179;135";
-    }; # 5/8 · peach
+      rgb = hexToRgbCsv palette.peach;
+    }; # 5/8
     xhigh = {
       glyph = "󰪤";
-      rgb = "235;160;172";
-    }; # 7/8 · maroon
+      rgb = hexToRgbCsv palette.maroon;
+    }; # 7/8
     max = {
       glyph = "󰪥";
-      rgb = "243;139;168";
-    }; # 8/8 · red
+      rgb = hexToRgbCsv palette.red;
+    }; # 8/8
   };
 
   # mkStatusBin renders a statusline that reads claude session JSON on
@@ -149,20 +153,20 @@ let
         fi
 
         RESET=$'\033[0m'
-        PINK=$'\033[38;2;245;194;231m'      # ${palette.pink}
-        LAVENDER=$'\033[38;2;180;190;254m'  # ${palette.lavender}
-        GREEN=$'\033[38;2;166;227;161m'     # ${palette.green}
-        YELLOW=$'\033[38;2;249;226;175m'    # ${palette.yellow}
-        RED=$'\033[38;2;243;139;168m'       # ${palette.red}
+        ACCENT=$'\033[38;2;${hexToRgbCsv palette.accent}m'
+        BRANCH=$'\033[38;2;${hexToRgbCsv palette.branch}m'
+        SUCCESS=$'\033[38;2;${hexToRgbCsv palette.success}m'
+        WARNING=$'\033[38;2;${hexToRgbCsv palette.warning}m'
+        ERROR=$'\033[38;2;${hexToRgbCsv palette.error}m'
         DIM=$'\033[2m'
 
-        line="''${PINK}''${short_cwd}''${RESET}"
+        line="''${ACCENT}''${short_cwd}''${RESET}"
         if [ -n "$branch" ]; then
-          line="''${line} ''${LAVENDER}''${branch}''${RESET}"
-          [ -n "$short_hash" ] && line="''${line} ''${LAVENDER}''${short_hash}''${RESET}"
-          [ "$added"    -gt 0 ] && line="''${line} ''${GREEN}''${added}''${RESET}"
-          [ "$modified" -gt 0 ] && line="''${line} ''${YELLOW}''${modified}''${RESET}"
-          [ "$deleted"  -gt 0 ] && line="''${line} ''${RED}''${deleted}''${RESET}"
+          line="''${line} ''${BRANCH}''${branch}''${RESET}"
+          [ -n "$short_hash" ] && line="''${line} ''${BRANCH}''${short_hash}''${RESET}"
+          [ "$added"    -gt 0 ] && line="''${line} ''${SUCCESS}''${added}''${RESET}"
+          [ "$modified" -gt 0 ] && line="''${line} ''${WARNING}''${modified}''${RESET}"
+          [ "$deleted"  -gt 0 ] && line="''${line} ''${ERROR}''${deleted}''${RESET}"
         fi
         # `pct% effort model` reads as one cluster — the effort glyph
         # acts as the separator between context-pct and model name, so
@@ -212,7 +216,7 @@ let
           fi
           update_msg=$(cat "$shared_cache" 2>/dev/null || true)
           if [ -n "$update_msg" ]; then
-            line="''${line} ''${YELLOW}''${update_msg}''${RESET}"
+            line="''${line} ''${WARNING}''${update_msg}''${RESET}"
           fi
         ''}
 
