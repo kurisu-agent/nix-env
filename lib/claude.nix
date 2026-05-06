@@ -204,19 +204,19 @@ let
                 if [[ "$raw" =~ $re ]]; then
                   latest="''${BASH_REMATCH[1]}"
                 fi
-                : > "$shared_cache"
-                if [ -n "$latest" ] && [ "$installed" != "$latest" ]; then
-                  newer=$(printf '%s\n%s' "$installed" "$latest" | sort -V | tail -1)
-                  if [ "$newer" = "$latest" ]; then
-                    printf '→ %s' "$latest" > "$shared_cache"
-                  fi
-                fi
+                # Cache the bare upstream version (or empty). Render-time
+                # decides whether to show it — that way a background upgrade
+                # to the cached version naturally suppresses the hint.
+                printf '%s' "$latest" > "$shared_cache"
               ) &
             fi
           fi
-          update_msg=$(cat "$shared_cache" 2>/dev/null || true)
-          if [ -n "$update_msg" ]; then
-            line="''${line} ''${WARNING}''${update_msg}''${RESET}"
+          latest=$(cat "$shared_cache" 2>/dev/null || true)
+          if [ -n "$latest" ] && [ "$installed" != "$latest" ]; then
+            newer=$(printf '%s\n%s' "$installed" "$latest" | sort -V | tail -1)
+            if [ "$newer" = "$latest" ]; then
+              line="''${line} ''${WARNING}→ ''${latest}''${RESET}"
+            fi
           fi
         ''}
 
