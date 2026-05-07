@@ -18,13 +18,13 @@
           "type": "text",
           "style": "plain",
           "foreground": "p:primary",
-          "template": "{{ .UserName }}@{{ .HostName }} "
+          "template": "{{ $v := printf \"%s@%s\" .UserName .HostName }}{{ if $v }}{{ $v }} {{ end }}"
         },
         {
           "type": "path",
           "style": "plain",
           "foreground": "p:accent",
-          "template": "{{ $segs := splitList \"/\" .Path }}{{ $n := len $segs }}{{ if le $n 4 }}{{ .Path }}{{ else }}{{ index $segs 0 }}/{{ index $segs 1 }}/{{ index $segs 2 }}//{{ index $segs (sub $n 1) }}{{ end }} ",
+          "template": "{{ $segs := splitList \"/\" .Path }}{{ $n := len $segs }}{{ $v := .Path }}{{ if gt $n 4 }}{{ $v = printf \"%s/%s/%s//%s\" (index $segs 0) (index $segs 1) (index $segs 2) (index $segs (sub $n 1)) }}{{ end }}{{ if $v }}{{ $v }} {{ end }}",
           "properties": {
             "home_icon": "~",
             "style": "full"
@@ -34,7 +34,7 @@
           "type": "git",
           "style": "plain",
           "foreground": "p:branch",
-          "template": "{{ .HEAD }}{{ if .Hash }} {{ trunc 4 .Hash }}{{ end }}",
+          "template": "{{ $v := .HEAD }}{{ if and $v .Hash }}{{ $v = printf \"%s %s\" $v (trunc 4 .Hash) }}{{ end }}{{ if $v }}{{ $v }} {{ end }}",
           "properties": {
             "branch_icon": "",
             "cherry_pick_icon": "",
@@ -52,28 +52,28 @@
           "type": "git",
           "style": "plain",
           "foreground": "p:success",
-          "template": "{{ if or (gt .Staging.Added 0) (gt .Working.Untracked 0) }} {{ add .Staging.Added .Working.Untracked }}{{ end }}",
+          "template": "{{ if or (gt .Staging.Added 0) (gt .Working.Untracked 0) }}{{ add .Staging.Added .Working.Untracked }} {{ end }}",
           "properties": { "fetch_status": true }
         },
         {
           "type": "git",
           "style": "plain",
           "foreground": "p:warning",
-          "template": "{{ if or (gt .Staging.Modified 0) (gt .Working.Modified 0) }} {{ add .Staging.Modified .Working.Modified }}{{ end }}",
+          "template": "{{ if or (gt .Staging.Modified 0) (gt .Working.Modified 0) }}{{ add .Staging.Modified .Working.Modified }} {{ end }}",
           "properties": { "fetch_status": true }
         },
         {
           "type": "git",
           "style": "plain",
           "foreground": "p:error",
-          "template": "{{ if or (gt .Staging.Deleted 0) (gt .Working.Deleted 0) }} {{ add .Staging.Deleted .Working.Deleted }}{{ end }}",
+          "template": "{{ if or (gt .Staging.Deleted 0) (gt .Working.Deleted 0) }}{{ add .Staging.Deleted .Working.Deleted }} {{ end }}",
           "properties": { "fetch_status": true }
         },
         {
           "type": "text",
           "style": "plain",
           "foreground": "p:muted",
-          "template": " ❯"
+          "template": "❯"
         }
       ]
     }
