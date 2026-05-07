@@ -118,7 +118,7 @@ case "${1:-}" in
         color="@pal_muted@"
         [ "$cpu_pct" -ge 50 ] && color="@pal_warning@"
         [ "$cpu_pct" -ge 80 ] && color="@pal_error@"
-        printf "#[fg=%s]%s %-2s %2d%%" "$color" "$GLYPH_CPU" "$cpus" "$cpu_pct"
+        printf "#[fg=%s]%s %s %2d%%" "$color" "$GLYPH_CPU" "$cpus" "$cpu_pct"
         ;;
     mem)
         mem_total=$(free -m | awk '/Mem:/{print int(($2 + 1023) / 1024)}')
@@ -126,7 +126,7 @@ case "${1:-}" in
         color="@pal_muted@"
         [ "$mem_pct" -ge 80 ] && color="@pal_warning@"
         [ "$mem_pct" -ge 95 ] && color="@pal_error@"
-        printf "#[fg=%s]%s %-2s %2d%%" "$color" "$GLYPH_MEM" "$mem_total" "$mem_pct"
+        printf "#[fg=%s]%s %s %2d%%" "$color" "$GLYPH_MEM" "$mem_total" "$mem_pct"
         ;;
     network)
         read -r rx1 tx1 < <(awk '!/lo:/ && /:/{rx+=$2; tx+=$10} END{printf "%d %d\n", rx, tx}' /proc/net/dev)
