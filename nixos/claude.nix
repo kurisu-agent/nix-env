@@ -129,8 +129,6 @@ in
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [
       cfg.package
-      pkgs.gh
-      pkgs.tmux
     ];
 
     system.userActivationScripts.nixEnvClaudeSettings.text = ''

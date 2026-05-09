@@ -200,6 +200,7 @@
           zellij-zsh = mkModule ./nixos/zellij-zsh.nix;
           zsh = mkModule ./nixos/zsh.nix;
           claude = mkModule ./nixos/claude.nix;
+          cli-tools = mkModule ./nixos/cli-tools.nix;
         };
 
       # `nix flake check` smoke-tests every output evaluates and the
