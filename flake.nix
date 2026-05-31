@@ -3,12 +3,11 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    # sadjow/claude-code-nix tracks upstream npm releases more aggressively
-    # than nixpkgs. Consumers that already pin claude-code-nix should
-    # `inputs.nix-env.inputs.claude-code-nix.follows = "claude-code-nix"`
-    # to keep one copy in their lock.
-    claude-code-nix = {
-      url = "github:sadjow/claude-code-nix";
+    # Self-updating native Claude Code. nix-env owns the single claude
+    # integration point and re-exports this flake's lib + module, so
+    # consumers get claude through nix-env rather than wiring it directly.
+    nix-claude-drip = {
+      url = "github:kurisu-agent/nix-claude-drip";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -17,7 +16,7 @@
     {
       self,
       nixpkgs,
-      claude-code-nix,
+      nix-claude-drip,
     }:
     let
       systems = [
@@ -37,6 +36,8 @@
           inherit nixpkgs system;
           repoRoot = ./.;
           paletteOverride = defaultPaletteOverride;
+          # nix-env's claude lib is re-exported from nix-claude-drip.
+          claudeLib = nix-claude-drip.lib.${system};
         };
 
       mkLintApps =
@@ -120,12 +121,11 @@
                 configDir = "${shellRc}/share/nix-env/zellij";
               };
               wrappedZsh = nix-env-lib.zsh.mkWrappedZsh { inherit shellRc; };
-              claudeStatus = nix-env-lib.claude.mkStatusBin {
-                # `claude` may be overlaid post-install at a higher
-                # priority; read the running version at runtime instead
-                # of baking the flake-pinned one in.
-                installedVersion = "$(claude --version 2>/dev/null | awk '{print $1}' || printf unknown)";
-              };
+              # claude statusline from the re-exported drip lib. The launcher
+              # + updater stay consumer-side (symlinkJoin'd on top), same as
+              # the claude binary always has been. drip's statusline reads the
+              # running version from session stdin, so no installedVersion arg.
+              claudeStatus = nix-env-lib.claude.mkStatusBin { };
             in
             pkgs.symlinkJoin {
               name = "nix-env-toolkit";
@@ -191,7 +191,6 @@
                 # nix-env's own pinned pkgs — used for ABI-coupled
                 # binaries like zellij (must match zjstatus.wasm).
                 nix-env-pkgs = nixpkgs.legacyPackages.${system};
-                inherit claude-code-nix;
               }
             );
         in
@@ -199,7 +198,10 @@
           zellij = mkModule ./nixos/zellij.nix;
           zellij-zsh = mkModule ./nixos/zellij-zsh.nix;
           zsh = mkModule ./nixos/zsh.nix;
-          claude = mkModule ./nixos/claude.nix;
+          # Re-export drip's NixOS module as nix-env's claude module, so
+          # consumers `imports = [ nix-env.nixosModules.claude ]` and get the
+          # self-updating drip claude (services.claude-code.*).
+          claude = nix-claude-drip.nixosModules.default;
           cli-tools = mkModule ./nixos/cli-tools.nix;
         };
 
@@ -228,19 +230,18 @@
             touch $out
           '';
 
-          nix-env-claude-status-renders = pkgs.runCommand "check-nix-env-claude-status" { } ''
-            bin=${nix-env-lib.claude.mkStatusBin { installedVersion = "1.2.3"; }}/bin/nix-env-claude-status
-            [ -x "$bin" ] || { echo "nix-env-claude-status not executable" >&2; exit 1; }
+          claude-statusline-renders = pkgs.runCommand "check-claude-statusline" { } ''
+            bin=${nix-env-lib.claude.mkStatusBin { }}/bin/claude-statusline
+            [ -x "$bin" ] || { echo "claude-statusline not executable" >&2; exit 1; }
             echo '{}' | "$bin" >/dev/null
 
             # Effort glyph wiring: "high" should emit the MDI circle_slice_5
             # glyph (U+F01AA2) into the rendered statusline.
             effort_bin=${
               nix-env-lib.claude.mkStatusBin {
-                installedVersion = "1.2.3";
                 effortLevel = "high";
               }
-            }/bin/nix-env-claude-status
+            }/bin/claude-statusline
             rendered=$(echo '{}' | "$effort_bin")
             printf '%s' "$rendered" | grep -qF '󰪢' \
               || { echo "effort glyph missing in rendered output: $rendered" >&2; exit 1; }

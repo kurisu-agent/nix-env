@@ -12,6 +12,12 @@
   nixpkgs,
   system,
   repoRoot,
+  # Re-exported as `.claude` — supplied by flake.nix as nix-claude-drip's
+  # per-system lib. The standalone ./lib import paths (zsh/zellij/cli-tools)
+  # don't pass it and never touch `.claude`; the default throws lazily so an
+  # accidental `.claude` access in that context fails loudly instead of
+  # silently yielding null.
+  claudeLib ? throw "nix-env/lib: claudeLib (nix-claude-drip's per-system lib) not supplied; .claude is unavailable in this standalone import context",
   paletteOverride ? { },
 }:
 
@@ -21,8 +27,7 @@ let
 
   palette = import ./palette.nix { inherit paletteOverride; };
 
-  # Hex → RGB conversion. Used by claude.nix for ANSI 38;2;R;G;B truecolor
-  # escapes and by zellij theme rendering for `R G B` KDL values.
+  # Hex → RGB conversion. Used by zellij theme rendering for `R G B` KDL values.
   hexDigit =
     let
       table = {
@@ -144,14 +149,11 @@ in
   # whole lib just to retint a single color.
   mkPalette = override: import ./palette.nix { paletteOverride = paletteOverride // override; };
 
-  claude = import ./claude.nix {
-    inherit
-      pkgs
-      lib
-      palette
-      colorHelpers
-      ;
-  };
+  # claude is re-exported from nix-claude-drip (threaded in as `claudeLib`):
+  # nix-env owns the single claude integration point while the implementation
+  # lives in the standalone drip flake. mkLauncher / mkStatusBin / mkSettings /
+  # mkUpdater / opinionatedDefaults all come from there.
+  claude = claudeLib;
 
   zsh = import ./zsh.nix {
     inherit
