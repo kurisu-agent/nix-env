@@ -25,41 +25,88 @@
 # names) and the override merges over the defaults below. Roles
 # resolve *after* the merge, so overriding a base name (e.g. `green`)
 # also re-tints every role that points at it (`accent`).
-{ paletteOverride ? { } }:
+# `variant` selects the Catppuccin flavour: "mocha" (dark, default) or
+# "latte" (light). The neutrals run opposite directions between the two
+# (`text` is lightest in Mocha, darkest in Latte; `base` vice-versa), so
+# the role aliases below produce a coherent light *or* dark theme from the
+# same role definitions — only the values flip.
+{
+  variant ? "mocha",
+  paletteOverride ? { },
+}:
 
 let
-  # Catppuccin Mocha base palette.
-  catppuccin = {
-    # Neutrals (dark → light).
-    crust = "#11111B";
-    mantle = "#181825";
-    base = "#1E1E2E";
-    surface0 = "#313244";
-    surface1 = "#45475A";
-    surface2 = "#585B70";
-    overlay0 = "#6C7086";
-    overlay1 = "#7F849C";
-    overlay2 = "#9399B2";
-    subtext0 = "#A6ADC8";
-    subtext1 = "#BAC2DE";
-    text = "#CDD6F4";
+  flavours = {
+    # Catppuccin Mocha (dark).
+    mocha = {
+      # Neutrals (dark → light).
+      crust = "#11111B";
+      mantle = "#181825";
+      base = "#1E1E2E";
+      surface0 = "#313244";
+      surface1 = "#45475A";
+      surface2 = "#585B70";
+      overlay0 = "#6C7086";
+      overlay1 = "#7F849C";
+      overlay2 = "#9399B2";
+      subtext0 = "#A6ADC8";
+      subtext1 = "#BAC2DE";
+      text = "#CDD6F4";
 
-    # Accents.
-    rosewater = "#F5E0DC";
-    flamingo = "#F2CDCD";
-    pink = "#F5C2E7";
-    mauve = "#CBA6F7";
-    red = "#F38BA8";
-    maroon = "#EBA0AC";
-    peach = "#FAB387";
-    yellow = "#F9E2AF";
-    green = "#A6E3A1";
-    teal = "#94E2D5";
-    sky = "#89DCEB";
-    sapphire = "#74C7EC";
-    blue = "#89B4FA";
-    lavender = "#B4BEFE";
+      # Accents.
+      rosewater = "#F5E0DC";
+      flamingo = "#F2CDCD";
+      pink = "#F5C2E7";
+      mauve = "#CBA6F7";
+      red = "#F38BA8";
+      maroon = "#EBA0AC";
+      peach = "#FAB387";
+      yellow = "#F9E2AF";
+      green = "#A6E3A1";
+      teal = "#94E2D5";
+      sky = "#89DCEB";
+      sapphire = "#74C7EC";
+      blue = "#89B4FA";
+      lavender = "#B4BEFE";
+    };
+    # Catppuccin Latte (light). Neutrals reverse: `base` is the lightest
+    # backdrop, `text` the darkest foreground.
+    latte = {
+      # Neutrals (light → dark, mirroring Mocha's ordering by role).
+      crust = "#DCE0E8";
+      mantle = "#E6E9EF";
+      base = "#EFF1F5";
+      surface0 = "#CCD0DA";
+      surface1 = "#BCC0CC";
+      surface2 = "#ACB0BE";
+      overlay0 = "#9CA0B0";
+      overlay1 = "#8C8FA1";
+      overlay2 = "#7C7F93";
+      subtext0 = "#6C6F85";
+      subtext1 = "#5C5F77";
+      text = "#4C4F69";
+
+      # Accents.
+      rosewater = "#DC8A78";
+      flamingo = "#DD7878";
+      pink = "#EA76CB";
+      mauve = "#8839EF";
+      red = "#D20F39";
+      maroon = "#E64553";
+      peach = "#FE640B";
+      yellow = "#DF8E1D";
+      green = "#40A02B";
+      teal = "#179299";
+      sky = "#04A5E5";
+      sapphire = "#209FB5";
+      blue = "#1E66F5";
+      lavender = "#7287FD";
+    };
   };
+
+  catppuccin =
+    flavours.${variant}
+      or (throw "nix-env/palette: unknown variant '${variant}' (expected \"mocha\" or \"latte\")");
 
   # User-supplied overrides apply *before* roles resolve, so an override
   # of `green` re-tints `accent` (and any other role pointing at it).

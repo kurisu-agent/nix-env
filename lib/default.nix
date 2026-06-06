@@ -18,6 +18,9 @@
   # accidental `.claude` access in that context fails loudly instead of
   # silently yielding null.
   claudeLib ? throw "nix-env/lib: claudeLib (nix-claude-drip's per-system lib) not supplied; .claude is unavailable in this standalone import context",
+  # "mocha" (dark, default) | "latte" (light). Flips every rendered theme
+  # (omp prompt, eza listing, zellij/zjstatus) to the matching flavour.
+  variant ? "mocha",
   paletteOverride ? { },
 }:
 
@@ -25,7 +28,7 @@ let
   pkgs = nixpkgs.legacyPackages.${system};
   inherit (nixpkgs) lib;
 
-  palette = import ./palette.nix { inherit paletteOverride; };
+  palette = import ./palette.nix { inherit variant paletteOverride; };
 
   # Hex → RGB conversion. Used by zellij theme rendering for `R G B` KDL values.
   hexDigit =
@@ -147,7 +150,30 @@ in
   # given override merged on top of (paletteOverride // defaults).
   # Consumers building one-off derivations don't need to re-import the
   # whole lib just to retint a single color.
-  mkPalette = override: import ./palette.nix { paletteOverride = paletteOverride // override; };
+  mkPalette = override: import ./palette.nix { inherit variant; paletteOverride = paletteOverride // override; };
+
+  # Rebuild the *entire* lib under a different flavour / override, reusing
+  # the inputs already captured here (nixpkgs flake, system, repoRoot,
+  # claudeLib). The NixOS modules only receive a pre-built lib — they have
+  # no nixpkgs flake to re-import ./lib from scratch — so this is how they
+  # re-render every themed artifact (ompTheme, ezaTheme, zellij theme,
+  # statusline) under `variant = "latte"`. `claudeLib` is inherited lazily,
+  # so callers that never touch `.claude` don't trip its throwing default.
+  reconfigure =
+    overrides:
+    import ./. (
+      {
+        inherit
+          nixpkgs
+          system
+          repoRoot
+          claudeLib
+          variant
+          paletteOverride
+          ;
+      }
+      // overrides
+    );
 
   # claude is re-exported from nix-claude-drip (threaded in as `claudeLib`):
   # nix-env owns the single claude integration point while the implementation

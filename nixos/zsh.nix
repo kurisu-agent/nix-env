@@ -25,20 +25,17 @@
 let
   cfg = config.services.zsh;
 
+  baseLib = args.nix-env-lib or (import ../lib {
+    nixpkgs = pkgs.path or <nixpkgs>;
+    inherit (pkgs) system;
+    repoRoot = ../.;
+  });
+
   nix-env-lib =
-    if cfg.paletteOverride == { } then
-      args.nix-env-lib or (import ../lib {
-        nixpkgs = pkgs.path or <nixpkgs>;
-        inherit (pkgs) system;
-        repoRoot = ../.;
-      })
+    if cfg.variant == "mocha" && cfg.paletteOverride == { } then
+      baseLib
     else
-      import ../lib {
-        nixpkgs = pkgs.path or <nixpkgs>;
-        inherit (pkgs) system;
-        repoRoot = ../.;
-        inherit (cfg) paletteOverride;
-      };
+      baseLib.reconfigure { inherit (cfg) variant paletteOverride; };
 
   zshLib = nix-env-lib.zsh;
   zellijLib = nix-env-lib.zellij;
@@ -55,6 +52,20 @@ in
       description = ''
         Wire `programs.fzf.{keybindings, fuzzyCompletion}` so Ctrl-T /
         Ctrl-R / Alt-C and `**<TAB>` work in interactive shells.
+      '';
+    };
+
+    variant = lib.mkOption {
+      type = lib.types.enum [
+        "mocha"
+        "latte"
+      ];
+      default = "mocha";
+      description = ''
+        Catppuccin flavour for the OMP prompt, eza file-listing colors, and
+        zsh syntax highlighting: "mocha" (dark, default) or "latte" (light).
+        Flip to "latte" on light-themed hosts so the shell tooling stays
+        legible on a light terminal background.
       '';
     };
 

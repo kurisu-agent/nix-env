@@ -22,20 +22,17 @@ let
   # is testable in isolation with `nixos-rebuild build-vm`. When the caller
   # sets `paletteOverride`, always re-import so the override propagates into
   # every rendered artifact (status binary, theme, layouts).
+  baseLib = args.nix-env-lib or (import ../lib {
+    nixpkgs = pkgs.path or <nixpkgs>;
+    inherit (pkgs) system;
+    repoRoot = ../.;
+  });
+
   nix-env-lib =
-    if cfg.paletteOverride == { } then
-      args.nix-env-lib or (import ../lib {
-        nixpkgs = pkgs.path or <nixpkgs>;
-        inherit (pkgs) system;
-        repoRoot = ../.;
-      })
+    if cfg.variant == "mocha" && cfg.paletteOverride == { } then
+      baseLib
     else
-      import ../lib {
-        nixpkgs = pkgs.path or <nixpkgs>;
-        inherit (pkgs) system;
-        repoRoot = ../.;
-        inherit (cfg) paletteOverride;
-      };
+      baseLib.reconfigure { inherit (cfg) variant paletteOverride; };
 
   zellij-lib = nix-env-lib.zellij;
 
@@ -80,6 +77,19 @@ in
 {
   options.services.zellij = {
     enable = lib.mkEnableOption "Zellij terminal multiplexer with the nix-env shared config";
+
+    variant = lib.mkOption {
+      type = lib.types.enum [
+        "mocha"
+        "latte"
+      ];
+      default = "mocha";
+      description = ''
+        Catppuccin flavour for the zellij theme + zjstatus topbar: "mocha"
+        (dark, default) or "latte" (light). Flip to "latte" on light-themed
+        hosts so the multiplexer chrome stays legible on a light terminal.
+      '';
+    };
 
     paletteOverride = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
