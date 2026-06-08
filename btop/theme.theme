@@ -1,0 +1,73 @@
+# Catppuccin btop theme — *template*. `@pal_NAME@` placeholders are
+# substituted at build time from lib/palette.nix via lib/default.nix's
+# substitutePalette, so the same file renders Mocha (dark) or Latte
+# (light) depending on the active `variant`. Edit by palette name, never
+# inline a literal hex.
+#
+# Foreground/box/graph colours all come from the palette, so the whole
+# thing flips luminance correctly between flavours: `text` is the readable
+# foreground in both, the accents stay saturated, the gradients run
+# green→yellow→red either way.
+
+# Backgrounds — main_bg is only painted when theme_background=true; our
+# hosts set theme_background=false so btop borrows the terminal background
+# (Ghostty's Catppuccin bg + blur). Kept here so the theme is correct
+# standalone too.
+theme[main_bg]="@pal_base@"
+theme[main_fg]="@pal_text@"
+
+# Title and highlight (hotkeys, selected menu entry).
+theme[title]="@pal_text@"
+theme[hi_fg]="@pal_blue@"
+theme[selected_bg]="@pal_surface1@"
+theme[selected_fg]="@pal_blue@"
+
+# Dimmed text + graph number overlay + divider lines.
+theme[inactive_fg]="@pal_overlay1@"
+theme[graph_text]="@pal_subtext0@"
+theme[meter_bg]="@pal_surface1@"
+theme[proc_misc]="@pal_blue@"
+
+# Box outlines — one accent per box, Catppuccin convention.
+theme[cpu_box]="@pal_mauve@"
+theme[mem_box]="@pal_green@"
+theme[net_box]="@pal_maroon@"
+theme[proc_box]="@pal_blue@"
+theme[div_line]="@pal_overlay0@"
+
+# Temperature gradient (cool → hot).
+theme[temp_start]="@pal_green@"
+theme[temp_mid]="@pal_yellow@"
+theme[temp_end]="@pal_red@"
+
+# CPU load gradient.
+theme[cpu_start]="@pal_green@"
+theme[cpu_mid]="@pal_yellow@"
+theme[cpu_end]="@pal_red@"
+
+# Memory region gradients.
+theme[free_start]="@pal_mauve@"
+theme[free_mid]=""
+theme[free_end]=""
+theme[cached_start]="@pal_blue@"
+theme[cached_mid]=""
+theme[cached_end]=""
+theme[available_start]="@pal_maroon@"
+theme[available_mid]=""
+theme[available_end]=""
+theme[used_start]="@pal_green@"
+theme[used_mid]=""
+theme[used_end]=""
+
+# Network up/down gradients.
+theme[download_start]="@pal_blue@"
+theme[download_mid]=""
+theme[download_end]=""
+theme[upload_start]="@pal_red@"
+theme[upload_mid]=""
+theme[upload_end]=""
+
+# Process CPU% gradient (low → high).
+theme[process_start]="@pal_green@"
+theme[process_mid]="@pal_yellow@"
+theme[process_end]="@pal_red@"

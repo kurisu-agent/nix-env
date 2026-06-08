@@ -122,6 +122,13 @@ let
     secondary = base.subtext0;
     muted = base.overlay0;
 
+    # Muted UI chrome (zjstatus topbar text + separators) that must stay
+    # legible *on `base`* in either flavour. Latte's overlay/surface shades
+    # are light greys that wash out on its light base, so light mode steps
+    # one rung darker; Mocha keeps overlay0/surface0 (unchanged dark look).
+    status_muted = if variant == "latte" then base.subtext0 else base.overlay0;
+    status_separator = if variant == "latte" then base.overlay0 else base.surface0;
+
     # Background hierarchy (5 shades, dark → light).
     bg = base.base;
     bg_alt = base.mantle;

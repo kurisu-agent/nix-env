@@ -31,8 +31,15 @@ let
     repoRoot = ../.;
   });
 
+  # "follow": don't bake a flavour — point eza + the omp prompt at
+  # runtime-swappable user paths under ~/.config/nix-env-theme so an
+  # external agent (the consumer's theme watcher) can repoint them at the
+  # light/dark artifact live. The non-swappable bits (syntax-highlight
+  # styles, aliases) use the Mocha default.
+  follow = cfg.variant == "follow";
+
   nix-env-lib =
-    if cfg.variant == "mocha" && cfg.paletteOverride == { } then
+    if follow || (cfg.variant == "mocha" && cfg.paletteOverride == { }) then
       baseLib
     else
       baseLib.reconfigure { inherit (cfg) variant paletteOverride; };
@@ -41,6 +48,11 @@ let
   zellijLib = nix-env-lib.zellij;
   ompTheme = nix-env-lib.ompTheme;
   ezaTheme = nix-env-lib.ezaTheme;
+
+  # omp config + eza config dir — store paths normally, runtime-swappable
+  # user paths in follow mode (the $HOME refs expand in the shell rc).
+  ompConfig = if follow then "$HOME/.config/nix-env-theme/omp.json" else "${ompTheme}";
+  ezaConfigDir = if follow then "$HOME/.config/nix-env-theme/eza" else "/etc/xdg/eza";
 in
 {
   options.services.zsh = {
@@ -59,6 +71,7 @@ in
       type = lib.types.enum [
         "mocha"
         "latte"
+        "follow"
       ];
       default = "mocha";
       description = ''
@@ -66,6 +79,13 @@ in
         zsh syntax highlighting: "mocha" (dark, default) or "latte" (light).
         Flip to "latte" on light-themed hosts so the shell tooling stays
         legible on a light terminal background.
+
+        "follow": point the OMP prompt + eza at runtime-swappable paths under
+        `~/.config/nix-env-theme/` (omp.json, eza/theme.yml) instead of baking
+        a flavour, so an external watcher can repoint them at the light/dark
+        artifact live. The consumer is responsible for populating those paths
+        (e.g. symlinking to the matching `ompTheme`/`ezaTheme`). Syntax-
+        highlight styles stay on the Mocha default (set in the shell rc).
       '';
     };
 
@@ -106,13 +126,13 @@ in
       };
 
       promptInit = ''
-        eval "$(oh-my-posh init zsh --config ${ompTheme})"
+        eval "$(oh-my-posh init zsh --config ${ompConfig})"
       '';
 
       interactiveShellInit = ''
         # eza honours $EZA_CONFIG_DIR for theme.yml; LS_COLORS would override it.
         unset LS_COLORS EZA_COLORS
-        export EZA_CONFIG_DIR="/etc/xdg/eza"
+        export EZA_CONFIG_DIR="${ezaConfigDir}"
       ''
       + lib.optionalString config.services.zellij.enable ''
 
@@ -138,7 +158,11 @@ in
       # two paths render identical aliases.
       shellAliases = zshLib.ezaAliases;
 
-      etc."xdg/eza/theme.yml".source = ezaTheme;
+      # In follow mode the consumer owns ~/.config/nix-env-theme/eza/theme.yml
+      # (swapped at runtime); otherwise ship the baked flavour system-wide.
+      etc = lib.mkIf (!follow) {
+        "xdg/eza/theme.yml".source = ezaTheme;
+      };
 
       systemPackages = with pkgs; [
         oh-my-posh

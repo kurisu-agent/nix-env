@@ -115,6 +115,10 @@ let
     substitutePalette (builtins.readFile (repoRoot + "/eza/theme.yml"))
   );
 
+  btopTheme = pkgs.writeText "nix-env-btop-catppuccin.theme" (
+    substitutePalette (builtins.readFile (repoRoot + "/btop/theme.theme"))
+  );
+
   paletteHelpers = {
     inherit
       paletteSubs
@@ -142,6 +146,7 @@ in
     nerd-fonts
     ompTheme
     ezaTheme
+    btopTheme
     ;
   inherit (colorHelpers) hexToRgb hexToRgbCsv hexToRgbSpaceSep;
   inherit (paletteHelpers) substitutePalette paletteSedArgs paletteSubs;
