@@ -11,6 +11,16 @@ keybinds {
     normal {
         bind "Alt -" { NextSwapLayout; }
     }
+    // Ctrl+T enters tab mode (zellij default; `n` is the built-in "new tab").
+    // g / y open pre-arranged grid tabs (2x2 / 3x3). __LAYOUTDIR__ is replaced
+    // by mkConfigDir with the absolute config-dir layouts path — the keybind
+    // loader needs a resolvable path at config-load, not a bare layout name.
+    // The grid panes are layout-managed, so Alt+[ / Alt+] cycle the swap
+    // layouts (2x2/quadrants, rows, stacked) on those tabs.
+    tab {
+        bind "g" { NewTab { layout "__LAYOUTDIR__/grid4.kdl"; }; SwitchToMode "Normal"; }
+        bind "y" { NewTab { layout "__LAYOUTDIR__/grid9.kdl"; }; SwitchToMode "Normal"; }
+    }
 }
 
 ui {

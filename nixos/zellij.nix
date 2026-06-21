@@ -40,6 +40,7 @@ let
     inherit (cfg) identityFile;
     inherit (cfg) timezone;
     inherit (cfg) withHelpLayout;
+    inherit (cfg) gridPaneCommand;
   };
 
   # Drop null fields so identity.json is `{}` rather than `{"color":null,...}`.
@@ -135,6 +136,24 @@ in
       type = lib.types.bool;
       default = true;
       description = "Install layouts/help.kdl (default + bottom built-in status-bar plugin). Pick with `zellij --layout help`.";
+    };
+
+    gridPaneCommand = lib.mkOption {
+      type = lib.types.nullOr (lib.types.listOf lib.types.str);
+      default = [
+        "claude"
+        "--dangerously-skip-permissions"
+      ];
+      example = null;
+      description = ''
+        Command (as an argv list) auto-run in every pane of the Ctrl+T grid
+        tabs (`g` = 2x2, `y` = 3x3). Defaults to the `yolo` command
+        (`claude --dangerously-skip-permissions`) so a grid is an instant fleet
+        of agents. Each pane runtime-checks the binary and falls back to
+        `$SHELL` if it's missing, so hosts without claude get plain shells with
+        no error. Set to `null` to force plain shells everywhere. Note the 3x3
+        grid launches one process per pane (nine), so size accordingly.
+      '';
     };
 
     socketDir = lib.mkOption {

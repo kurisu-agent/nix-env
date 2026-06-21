@@ -89,26 +89,4 @@ layout {
         }
         children
     }
-    // Every new session starts with two tabs (see lib/zellij.nix autoattach,
-    // which launches via `-n <this file>` — multi-tab layouts only
-    // materialise when passed explicitly, not via `default_layout`).
-    tab name="main" focus=true {
-        pane
-    }
-    // Tab 2 is born as a 4-pane 2x2. Because its panes are layout-managed,
-    // the fixed-slot "quadrants" swap layout binds to them, so Alt+[ / Alt+]
-    // cycle 2x2 ↔ stacked ↔ rows here (a manually-split tab can't reach the
-    // fixed-slot 2x2 — only the children-based rows/stacked).
-    tab name="grid" {
-        pane split_direction="horizontal" {
-            pane split_direction="vertical" {
-                pane
-                pane
-            }
-            pane split_direction="vertical" {
-                pane
-                pane
-            }
-        }
-    }
 }

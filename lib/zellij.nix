@@ -73,6 +73,9 @@ let
       timezone ? "",
       withHelpLayout ? true,
       statusBin ? defaultStatusBin,
+      # argv list auto-run in every pane of the Ctrl+T grid tabs (g/y). null or
+      # empty → plain shells. e.g. [ "claude" "--dangerously-skip-permissions" ].
+      gridPaneCommand ? null,
     }:
     let
       sub =
@@ -88,6 +91,49 @@ let
       defaultLayout = sub (repoRoot + "/zellij/layouts/default.kdl");
       swapLayout = repoRoot + "/zellij/layouts/default.swap.kdl";
       helpLayout = sub (repoRoot + "/zellij/layouts/help.kdl");
+      # One leaf pane of a grid tab. With gridPaneCommand unset → a plain pane
+      # (the user's shell). With it set → a command pane that runtime-checks the
+      # binary and runs it, else falls back to $SHELL — so claude-less hosts
+      # degrade gracefully instead of erroring. \" is a literal KDL escaped
+      # quote ('' strings don't treat backslash specially); ''${ escapes the
+      # runtime shell ${...} so Nix leaves it for sh to expand.
+      gridPaneNode =
+        if gridPaneCommand == null || gridPaneCommand == [ ] then
+          "pane"
+        else
+          let
+            bin = builtins.head gridPaneCommand;
+            cmdline = lib.concatStringsSep " " gridPaneCommand;
+          in
+          ''pane command="sh" { args "-c" "command -v ${bin} >/dev/null 2>&1 && exec ${cmdline} || exec \"''${SHELL:-bash}\""; }'';
+      # Grid tab KDL (sibling nodes newline-separated — KDL needs that): a
+      # `rows`x`cols` grid of gridPaneNode leaves nested in column splits.
+      gridTab =
+        rows: cols:
+        let
+          col = ''pane split_direction="vertical" {
+${lib.concatStringsSep "\n" (lib.genList (_: gridPaneNode) cols)}
+}'';
+        in
+        ''tab name="grid" {
+pane split_direction="horizontal" {
+${lib.concatStringsSep "\n" (lib.genList (_: col) rows)}
+}
+}'';
+      # Grid layouts for the Ctrl+T g / y keybinds, generated entirely in Nix:
+      # the (already-substituted) default layout's zjstatus topbar template minus
+      # its closing brace, then the grid tab, then the layout's closing brace.
+      # Keeping the topbar from default.kdl means it never drifts. The tab is
+      # passed via an env var so its shell metacharacters (&&, ||, ") and the
+      # runtime ''${SHELL} reach the file verbatim.
+      mkGrid =
+        rows: cols: name:
+        pkgs.runCommand "nix-env-zellij-${name}" { gridTabContent = gridTab rows cols; } ''
+          ${pkgs.coreutils}/bin/head -n -1 ${defaultLayout} > $out
+          printf '%s\n}\n' "$gridTabContent" >> $out
+        '';
+      grid4Layout = mkGrid 2 2 "grid4";
+      grid9Layout = mkGrid 3 3 "grid9";
     in
     pkgs.runCommand "nix-env-zellij-config-dir"
       {
@@ -102,10 +148,17 @@ let
       }
       ''
         mkdir -p $out/layouts $out/themes
-        install -m 0644 ${repoRoot + "/zellij/config.kdl"}                $out/config.kdl
+        # config.kdl: bake the absolute layout dir into the Ctrl+T grid keybinds
+        # (the keybind loader needs a resolvable path at config-load time; bare
+        # layout names and a config-relative layout_dir don't reliably resolve).
+        ${pkgs.gnused}/bin/sed "s|__LAYOUTDIR__|$out/layouts|g" \
+          ${repoRoot + "/zellij/config.kdl"} > $out/config.kdl
+        chmod 0644 $out/config.kdl
         install -m 0644 ${themeKdl}                                       $out/themes/catppuccin_mocha.kdl
         install -m 0644 ${defaultLayout}                                  $out/layouts/default.kdl
         install -m 0644 ${swapLayout}                                     $out/layouts/default.swap.kdl
+        install -m 0644 ${grid4Layout}                                    $out/layouts/grid4.kdl
+        install -m 0644 ${grid9Layout}                                    $out/layouts/grid9.kdl
         ${if withHelpLayout then "install -m 0644 ${helpLayout} $out/layouts/help.kdl" else ""}
       '';
 
@@ -159,17 +212,7 @@ let
     fi
     ${conntypeWriteSnippet}
     if [[ -z "''${ZELLIJ:-}" ]] && [[ -n "''${SSH_CONNECTION:-}" || -n "''${MOSH_CONNECTION:-}" ]]; then
-        # Attach to a live session if one exists; otherwise create a fresh
-        # session FROM the two-tab startup layout (tab 1 normal, tab 2 a 2x2
-        # grid — see zellij/layouts/default.kdl). `default_layout` can't do
-        # this: multi-tab layouts only materialise when passed explicitly with
-        # -n, and the bare name "default" resolves to zellij's built-in
-        # single-pane layout, so we pass the full config-dir path.
-        if [[ "$(zellij list-sessions -n 2>/dev/null | grep -cvE 'EXITED|No active|^$')" -gt 0 ]]; then
-            zellij attach -c
-        else
-            zellij -n "''${ZELLIJ_CONFIG_DIR}/layouts/default.kdl"
-        fi
+        zellij attach -c
     fi
   '';
 
