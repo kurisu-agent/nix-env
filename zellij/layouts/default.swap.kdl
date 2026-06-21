@@ -6,35 +6,12 @@ swap_tiled_layout name="rows" {
     }
 }
 
-swap_tiled_layout name="vertical" {
-    tab max_panes=5 {
-        pane split_direction="vertical" {
-            pane
-            pane { children; }
-        }
-    }
-    tab max_panes=8 {
-        pane split_direction="vertical" {
-            pane { children; }
-            pane { pane; pane; pane; pane; }
-        }
-    }
-    tab max_panes=12 {
-        pane split_direction="vertical" {
-            pane { children; }
-            pane { pane; pane; pane; pane; }
-            pane { pane; pane; pane; pane; }
-        }
-    }
-}
-
-// 2x2 grid for four panes. Newline-separated `pane` statements rather
-// than semicolon-chained ones because zellij's swap-layout parser
-// silently drops layouts where the inner KDL doesn't match its expected
-// shape — semicolon-chained `pane`s read as a single pane node by some
-// parser paths. max_panes=4 means "applies to tabs with up to 4 panes",
-// so cycling with Alt - hits this between vertical (max_panes=5) and
-// stacked (no max_panes) at exactly 4 panes.
+// 2x2 grid for four panes. This is a FIXED-SLOT layout (four leaf panes, no
+// `children`), so it only binds to *layout-managed* panes — i.e. panes born
+// from a layout, like the `grid` tab in default.kdl. On a tab whose panes
+// were opened by manual splitting, zellij won't engage this at 4 panes (it
+// silently skips it); only the children-based `rows`/`stacked` apply there.
+// That's by design: the `grid` startup tab is how you get the cycle-able 2x2.
 swap_tiled_layout name="quadrants" {
     tab max_panes=4 {
         pane split_direction="horizontal" {

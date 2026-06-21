@@ -159,7 +159,17 @@ let
     fi
     ${conntypeWriteSnippet}
     if [[ -z "''${ZELLIJ:-}" ]] && [[ -n "''${SSH_CONNECTION:-}" || -n "''${MOSH_CONNECTION:-}" ]]; then
-        zellij attach -c
+        # Attach to a live session if one exists; otherwise create a fresh
+        # session FROM the two-tab startup layout (tab 1 normal, tab 2 a 2x2
+        # grid — see zellij/layouts/default.kdl). `default_layout` can't do
+        # this: multi-tab layouts only materialise when passed explicitly with
+        # -n, and the bare name "default" resolves to zellij's built-in
+        # single-pane layout, so we pass the full config-dir path.
+        if [[ "$(zellij list-sessions -n 2>/dev/null | grep -cvE 'EXITED|No active|^$')" -gt 0 ]]; then
+            zellij attach -c
+        else
+            zellij -n "''${ZELLIJ_CONFIG_DIR}/layouts/default.kdl"
+        fi
     fi
   '';
 
