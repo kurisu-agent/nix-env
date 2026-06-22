@@ -20,6 +20,18 @@
 let
   inherit (paletteHelpers) substitutePalette paletteSedArgs;
 
+  # The grid-tab default: claude in yolo mode. Lives here — the shared floor
+  # every consumer (NixOS module, drift/devcontainer via mkShellRc, the flake
+  # packages, nix-on-droid) routes through mkConfigDir — so claude-by-default
+  # is intrinsic and opt-out (gridPaneCommand = null/[]) is the explicit act,
+  # rather than a default that only the NixOS-module path happens to read.
+  # Safe everywhere: gridPaneNode runtime-checks the binary and falls back to
+  # $SHELL, so hosts without claude get plain shells with no error.
+  defaultGridPaneCommand = [
+    "claude"
+    "--dangerously-skip-permissions"
+  ];
+
   zjstatusVersion = lib.removeSuffix "\n" (builtins.readFile (repoRoot + "/zellij/zjstatus-version"));
 
   zjstatusWasm = pkgs.fetchurl {
@@ -73,9 +85,10 @@ let
       timezone ? "",
       withHelpLayout ? true,
       statusBin ? defaultStatusBin,
-      # argv list auto-run in every pane of the Ctrl+T grid tabs (g/y). null or
-      # empty → plain shells. e.g. [ "claude" "--dangerously-skip-permissions" ].
-      gridPaneCommand ? null,
+      # argv list auto-run in every pane of the Ctrl+T grid tabs (g/y). Defaults
+      # to claude in yolo mode (see defaultGridPaneCommand); pass null or [] to
+      # opt out → plain shells.
+      gridPaneCommand ? defaultGridPaneCommand,
     }:
     let
       sub =
@@ -230,6 +243,7 @@ in
 {
   statusBin = defaultStatusBin;
   inherit
+    defaultGridPaneCommand
     zjstatusVersion
     zjstatusWasm
     permissionsKdl

@@ -87,9 +87,11 @@ let
       timezone ? "",
       extraBashrcPrelude ? "",
       extraZshrc ? "",
+      # Inherits the claude-by-default grid command; pass null/[] to opt out.
+      gridPaneCommand ? zellij.defaultGridPaneCommand,
     }:
     let
-      configDir = zellij.mkConfigDir { inherit identityFile timezone; };
+      configDir = zellij.mkConfigDir { inherit identityFile timezone gridPaneCommand; };
 
       bashrcBootstrap = pkgs.writeText "nix-env-bashrc-bootstrap" ''
         # --- nix-env shell bootstrap ---

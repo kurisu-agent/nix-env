@@ -140,10 +140,9 @@ in
 
     gridPaneCommand = lib.mkOption {
       type = lib.types.nullOr (lib.types.listOf lib.types.str);
-      default = [
-        "claude"
-        "--dangerously-skip-permissions"
-      ];
+      # Single source of truth in lib/zellij.nix, shared with every non-module
+      # consumer (drift/devcontainer, nix-on-droid, flake packages).
+      default = zellij-lib.defaultGridPaneCommand;
       example = null;
       description = ''
         Command (as an argv list) auto-run in every pane of the Ctrl+T grid
