@@ -146,12 +146,12 @@ in
       example = null;
       description = ''
         Command (as an argv list) auto-run in every pane of the Ctrl+T grid
-        tabs (`g` = 2x2, `y` = 3x3). Defaults to the `yolo` command
+        tabs (`g` = 2x2, `y` = 2x3). Defaults to the `yolo` command
         (`claude --dangerously-skip-permissions`) so a grid is an instant fleet
         of agents. Each pane runtime-checks the binary and falls back to
         `$SHELL` if it's missing, so hosts without claude get plain shells with
-        no error. Set to `null` to force plain shells everywhere. Note the 3x3
-        grid launches one process per pane (nine), so size accordingly.
+        no error. Set to `null` to force plain shells everywhere. Note the 2x3
+        grid launches one process per pane (six), so size accordingly.
       '';
     };
 

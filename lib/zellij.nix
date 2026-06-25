@@ -146,7 +146,7 @@ ${lib.concatStringsSep "\n" (lib.genList (_: col) rows)}
           printf '%s\n}\n' "$gridTabContent" >> $out
         '';
       grid4Layout = mkGrid 2 2 "grid4";
-      grid9Layout = mkGrid 3 3 "grid9";
+      grid6Layout = mkGrid 2 3 "grid6";
     in
     pkgs.runCommand "nix-env-zellij-config-dir"
       {
@@ -171,7 +171,7 @@ ${lib.concatStringsSep "\n" (lib.genList (_: col) rows)}
         install -m 0644 ${defaultLayout}                                  $out/layouts/default.kdl
         install -m 0644 ${swapLayout}                                     $out/layouts/default.swap.kdl
         install -m 0644 ${grid4Layout}                                    $out/layouts/grid4.kdl
-        install -m 0644 ${grid9Layout}                                    $out/layouts/grid9.kdl
+        install -m 0644 ${grid6Layout}                                    $out/layouts/grid6.kdl
         ${if withHelpLayout then "install -m 0644 ${helpLayout} $out/layouts/help.kdl" else ""}
       '';
 
