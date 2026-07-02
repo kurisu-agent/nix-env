@@ -66,11 +66,20 @@ let
     # Tests target the host, not wasm; upstream's own flake skips them too.
     doCheck = false;
 
-    # The cross stdenv points cargo at the clang wrapper, which rejects the
-    # wasm-ld-flavored args rustc emits for wasm targets. Link with wasm-ld
-    # itself (runs on the build host); the env var outranks the generated
-    # .cargo/config.
-    env.CARGO_TARGET_WASM32_WASIP1_LINKER = "${pkgs.llvmPackages.lld}/bin/wasm-ld";
+    # The cross stdenv wires cargo's linker to the clang wrapper, which
+    # rejects the wasm-ld-flavored args rustc emits for wasm targets. Where
+    # that wiring lives depends on the consumer's nixpkgs generation: older
+    # ones write it into .cargo/config (which a derivation-level env attr
+    # outranks), newer ones prefix the hook's cargo invocation with
+    # `env CARGO_TARGET_…_LINKER=cc` (which clobbers any env attr). A custom
+    # buildPhase sidesteps the hook's invocation entirely, so this export
+    # wins on both. wasm-ld runs on the build host.
+    buildPhase = ''
+      runHook preBuild
+      export CARGO_TARGET_WASM32_WASIP1_LINKER=${pkgs.llvmPackages.lld}/bin/wasm-ld
+      cargo build -j "$NIX_BUILD_CORES" --release --frozen --target wasm32-wasip1
+      runHook postBuild
+    '';
 
     installPhase = ''
       runHook preInstall
