@@ -134,7 +134,6 @@ let
       pkgs
       lib
       repoRoot
-      palette
       paletteHelpers
       ;
   };

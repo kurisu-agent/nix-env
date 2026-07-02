@@ -1,0 +1,53 @@
+From 053898e1e245c0df9aaaa783710e88e2926fbbb2 Mon Sep 17 00:00:00 2001
+From: Jake Nelson <jknlsn@users.noreply.github.com>
+Date: Tue, 2 Jun 2026 05:08:22 +1000
+Subject: [PATCH] fix: use timer events for idle refresh (#253)
+
+---
+ src/bin/zjstatus.rs | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/src/bin/zjstatus.rs b/src/bin/zjstatus.rs
+index 3f58683..9a9ae7b 100644
+--- a/src/bin/zjstatus.rs
++++ b/src/bin/zjstatus.rs
+@@ -20,6 +20,9 @@ use zjstatus::{
+     },
+ };
+ 
++// Matches the old incidental Zellij session scan cadence.
++const REFRESH_INTERVAL_SECONDS: f64 = 1.0;
++
+ #[derive(Default)]
+ struct State {
+     pending_events: Vec<Event>,
+@@ -70,10 +73,12 @@ impl ZellijPlugin for State {
+             EventType::ModeUpdate,
+             EventType::PaneUpdate,
+             EventType::PermissionRequestResult,
++            EventType::Timer,
+             EventType::TabUpdate,
+             EventType::SessionUpdate,
+             EventType::RunCommandResult,
+         ]);
++        set_timeout(REFRESH_INTERVAL_SECONDS);
+ 
+         self.module_config = match ModuleConfig::new(&configuration) {
+             Ok(mc) => mc,
+@@ -294,6 +299,13 @@ impl State {
+ 
+                 should_render = true;
+             }
++            Event::Timer(_) => {
++                tracing::Span::current().record("event_type", "Event::Timer");
++                set_timeout(REFRESH_INTERVAL_SECONDS);
++                self.state.cache_mask = 0;
++
++                should_render = true;
++            }
+             _ => (),
+         };
+         should_render
+-- 
+2.53.0
+

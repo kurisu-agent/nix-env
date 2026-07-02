@@ -13,7 +13,6 @@
   pkgs,
   lib,
   repoRoot,
-  palette,
   paletteHelpers,
 }:
 
@@ -34,9 +33,50 @@ let
 
   zjstatusVersion = lib.removeSuffix "\n" (builtins.readFile (repoRoot + "/zellij/zjstatus-version"));
 
-  zjstatusWasm = pkgs.fetchurl {
-    url = "https://github.com/dj95/zjstatus/releases/download/v${zjstatusVersion}/zjstatus.wasm";
-    hash = "sha256-4AaQEiNSQjnbYYAh5MxdF/gtxL+uVDKJW6QfA/E4Yf8=";
+  # Built from source rather than fetching the release wasm: v0.23.0 needs
+  # the not-yet-released upstream fix dj95/zjstatus#253 ("use timer events
+  # for idle refresh", commit 053898e). Without it the topbar's command
+  # widgets stay empty on a fresh session until an external event (resize,
+  # mode change, tab switch) forces a repaint — zellij ≥0.44 stopped
+  # emitting the incidental per-second SessionUpdate the plugin's render
+  # loop leaned on. Drop the patch (and consider returning to the release
+  # artifact) once upstream tags a release past 0.23.0. The wasi32 rust
+  # toolchain substitutes from cache.nixos.org on x86_64-linux, so this
+  # costs one small crate build, not a rustc bootstrap. (On aarch64-linux
+  # the cross toolchain is NOT cached upstream and would bootstrap rustc —
+  # no current aarch64 consumer uses this lib, but revisit before one
+  # does.) $out is the bare .wasm file,
+  # exactly like the fetchurl output, so downstream interpolation sites
+  # (layouts, permissions.kdl) are unaffected.
+  zjstatusWasm = pkgs.pkgsCross.wasi32.rustPlatform.buildRustPackage {
+    pname = "zjstatus";
+    version = zjstatusVersion;
+
+    src = pkgs.fetchFromGitHub {
+      owner = "dj95";
+      repo = "zjstatus";
+      tag = "v${zjstatusVersion}";
+      hash = "sha256-sjMs63OaRhwCrl46v1A+K2EJdqnw63Pc7BMnHqiU790=";
+    };
+
+    patches = [ (repoRoot + "/zellij/patches/zjstatus-timer-idle-refresh.patch") ];
+
+    cargoHash = "sha256-jg7EpcA3o/Qdb1eIspZQI3TX3+7gc3YX+FB4l4FZX44=";
+
+    # Tests target the host, not wasm; upstream's own flake skips them too.
+    doCheck = false;
+
+    # The cross stdenv points cargo at the clang wrapper, which rejects the
+    # wasm-ld-flavored args rustc emits for wasm targets. Link with wasm-ld
+    # itself (runs on the build host); the env var outranks the generated
+    # .cargo/config.
+    env.CARGO_TARGET_WASM32_WASIP1_LINKER = "${pkgs.llvmPackages.lld}/bin/wasm-ld";
+
+    installPhase = ''
+      runHook preInstall
+      cp target/wasm32-wasip1/release/zjstatus.wasm $out
+      runHook postInstall
+    '';
   };
 
   # Bare permissions.kdl ready for `~/.cache/zellij/permissions.kdl`. Both
@@ -124,15 +164,17 @@ let
       gridTab =
         rows: cols:
         let
-          col = ''pane split_direction="vertical" {
-${lib.concatStringsSep "\n" (lib.genList (_: gridPaneNode) cols)}
-}'';
+          col = ''
+            pane split_direction="vertical" {
+            ${lib.concatStringsSep "\n" (lib.genList (_: gridPaneNode) cols)}
+            }'';
         in
-        ''tab name="grid" {
-pane split_direction="horizontal" {
-${lib.concatStringsSep "\n" (lib.genList (_: col) rows)}
-}
-}'';
+        ''
+          tab name="grid" {
+          pane split_direction="horizontal" {
+          ${lib.concatStringsSep "\n" (lib.genList (_: col) rows)}
+          }
+          }'';
       # Grid layouts for the Ctrl+T g / y keybinds, generated entirely in Nix:
       # the (already-substituted) default layout's zjstatus topbar template minus
       # its closing brace, then the grid tab, then the layout's closing brace.
@@ -175,9 +217,11 @@ ${lib.concatStringsSep "\n" (lib.genList (_: col) rows)}
         ${if withHelpLayout then "install -m 0644 ${helpLayout} $out/layouts/help.kdl" else ""}
       '';
 
-  # Wrapped zellij: defaults ZELLIJ_CONFIG_DIR at our config dir AND seeds
-  # ~/.cache/zellij/permissions.kdl on first run so the zjstatus topbar
-  # plugin loads without an interactive consent prompt. --set-default
+  # Wrapped zellij: defaults ZELLIJ_CONFIG_DIR at our config dir AND keeps
+  # ~/.cache/zellij/permissions.kdl seeded so the zjstatus topbar plugin
+  # loads without an interactive consent prompt — including after a zjstatus
+  # bump changes the wasm store path (grants are keyed by absolute path, so
+  # a first-run-only seed would leave upgraded hosts prompting). --set-default
   # leaves a user's existing $ZELLIJ_CONFIG_DIR untouched, so a user who
   # genuinely wants their own zellij setup can still override.
   mkWrappedBin =
@@ -196,6 +240,11 @@ ${lib.concatStringsSep "\n" (lib.genList (_: col) rows)}
         if [ ! -f "$perms" ]; then
           mkdir -p "$cache_dir"
           install -m 0644 ${permissionsKdl} "$perms"
+        elif ! grep -qF "${zjstatusWasm}" "$perms"; then
+          # New wasm path (zjstatus bump): append our grant, preserving any
+          # entries the user granted to other plugins. Stale entries for old
+          # store paths are harmless.
+          cat ${permissionsKdl} >> "$perms"
         fi
 
         exec ${pkgs.zellij}/bin/zellij "$@"
