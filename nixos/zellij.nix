@@ -128,8 +128,14 @@ in
 
     timezone = lib.mkOption {
       type = lib.types.str;
-      default = config.time.timeZone or "";
-      description = "IANA timezone for the topbar clock. Defaults to system time zone.";
+      # NOT `config.time.timeZone or ""`: `or` fires only when the attribute is
+      # MISSING, and `time.timeZone` exists on every NixOS host — defaulting to
+      # `null`. So on a host that has not set a timezone this handed `null` to a
+      # `str` option and eval failed outright. Normal hosts set one, which is why
+      # this hid; a MINIMAL guest (a drift kart) does not, and it broke the whole
+      # deployment there.
+      default = if (config.time.timeZone or null) == null then "" else config.time.timeZone;
+      description = "IANA timezone for the topbar clock. Defaults to the system time zone, or empty when it has none.";
     };
 
     withHelpLayout = lib.mkOption {
