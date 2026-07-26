@@ -282,8 +282,16 @@ let
         export MOSH_CONNECTION=1
     fi
     ${conntypeWriteSnippet}
-    if [[ -z "''${ZELLIJ:-}" ]] && [[ -n "''${SSH_CONNECTION:-}" || -n "''${MOSH_CONNECTION:-}" ]]; then
-        zellij attach -c
+    # `exec`, so QUITTING ZELLIJ ENDS THE CONNECTION rather than dropping the
+    # operator into a bare login shell they then have to exit a second time. The bash
+    # snippet below has always done this; zsh did not, and on a remote box (a drift
+    # kart, where zsh is the login shell) that inconsistency is what you actually hit.
+    #
+    # Guarded on zellij being present — `exec` replaces the shell, so without the
+    # guard a host missing zellij would lose its session outright.
+    if [[ -z "''${ZELLIJ:-}" ]] && [[ -n "''${SSH_CONNECTION:-}" || -n "''${MOSH_CONNECTION:-}" ]] \
+        && command -v zellij >/dev/null 2>&1; then
+        exec zellij attach -c
     fi
   '';
 
