@@ -291,6 +291,27 @@ let
     # guard a host missing zellij would lose its session outright.
     if [[ -z "''${ZELLIJ:-}" ]] && [[ -n "''${SSH_CONNECTION:-}" || -n "''${MOSH_CONNECTION:-}" ]] \
         && command -v zellij >/dev/null 2>&1; then
+        # ssh never forwards COLORTERM and mosh forwards only its own fixed
+        # allowlist, so on a remote box it arrives UNSET however truecolor the
+        # operator's terminal actually is. Every hex this repo renders is 24-bit
+        # (zellij chrome, omp prompt, eza theme.yml, the btop catppuccin theme),
+        # so unset means the renderers that gate on it quantise to the nearest
+        # xterm-256 cell and the whole palette lands subtly wrong — Mocha's
+        # #cdd6f4 goes grey-blue, the accent pinks flatten. Nobody reports that
+        # as a bug; they report that the theme "looks off". Same asymmetry as the
+        # `exec` above: the bash snippet has exported it since forever, the zsh
+        # path — the one a kart takes, zsh being its login shell — never did.
+        #
+        # Scoped to this branch deliberately. Exporting it from
+        # interactiveShellInit unconditionally would claim truecolor for a
+        # genuinely 256-colour LOCAL terminal: a lie in the other direction.
+        #
+        # And deliberately NOT also copying bash's `export TERM=xterm-256color`:
+        # consumers handle TERM better than a hardcode can (drift-rust ships the
+        # full terminfo database plus an `infocmp` fallback that fires only when
+        # the incoming entry is genuinely missing), and clobbering an already-good
+        # TERM here would throw that away.
+        export COLORTERM=truecolor
         exec zellij attach -c
     fi
   '';
