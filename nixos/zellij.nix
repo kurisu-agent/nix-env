@@ -22,11 +22,12 @@ let
   # is testable in isolation with `nixos-rebuild build-vm`. When the caller
   # sets `paletteOverride`, always re-import so the override propagates into
   # every rendered artifact (status binary, theme, layouts).
-  baseLib = args.nix-env-lib or (import ../lib {
-    nixpkgs = pkgs.path or <nixpkgs>;
-    inherit (pkgs) system;
-    repoRoot = ../.;
-  });
+  baseLib =
+    args.nix-env-lib or (import ../lib {
+      nixpkgs = pkgs.path or <nixpkgs>;
+      inherit (pkgs) system;
+      repoRoot = ../.;
+    });
 
   nix-env-lib =
     if cfg.variant == "mocha" && cfg.paletteOverride == { } then

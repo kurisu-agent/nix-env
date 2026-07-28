@@ -35,9 +35,7 @@ let
       let
         key = lib.removePrefix "nf-" icon;
       in
-      glyphs.${key} or (
-        throw "unknown nerd-font glyph: ${icon} (add to data/nerd-fonts.tsv)"
-      );
+      glyphs.${key} or (throw "unknown nerd-font glyph: ${icon} (add to data/nerd-fonts.tsv)");
 in
 {
   inherit glyphs glyphFor;

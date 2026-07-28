@@ -171,9 +171,7 @@ let
         fi
 
         if command -v eza >/dev/null 2>&1; then
-        ${lib.concatStringsSep "\n" (
-          lib.mapAttrsToList (k: v: "  alias ${k}='${v}'") ezaAliases
-        )}
+        ${lib.concatStringsSep "\n" (lib.mapAttrsToList (k: v: "  alias ${k}='${v}'") ezaAliases)}
         else
           alias ll='ls -alF'
         fi

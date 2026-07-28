@@ -25,11 +25,12 @@
 let
   cfg = config.services.zsh;
 
-  baseLib = args.nix-env-lib or (import ../lib {
-    nixpkgs = pkgs.path or <nixpkgs>;
-    inherit (pkgs) system;
-    repoRoot = ../.;
-  });
+  baseLib =
+    args.nix-env-lib or (import ../lib {
+      nixpkgs = pkgs.path or <nixpkgs>;
+      inherit (pkgs) system;
+      repoRoot = ../.;
+    });
 
   # "follow": don't bake a flavour — point eza + the omp prompt at
   # runtime-swappable user paths under ~/.config/nix-env-theme so an
@@ -46,8 +47,7 @@ let
 
   zshLib = nix-env-lib.zsh;
   zellijLib = nix-env-lib.zellij;
-  ompTheme = nix-env-lib.ompTheme;
-  ezaTheme = nix-env-lib.ezaTheme;
+  inherit (nix-env-lib) ompTheme ezaTheme;
 
   # omp config + eza config dir — store paths normally, runtime-swappable
   # user paths in follow mode (the $HOME refs expand in the shell rc).
@@ -92,7 +92,9 @@ in
     paletteOverride = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
       default = { };
-      example = { accent = "#FF0099"; };
+      example = {
+        accent = "#FF0099";
+      };
       description = ''
         Partial-merge palette override applied to lib/palette.nix.
         Affects the OMP prompt theme, eza file-listing colors, and zsh

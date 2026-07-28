@@ -91,7 +91,7 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
           nix-env-lib = mkLib system;
-          nix-env-update = (mkUpdateApp system).nix-env-update;
+          inherit (mkUpdateApp system) nix-env-update;
         in
         {
           # Canonical pre-rendered artefacts. Consumers that don't need
@@ -191,7 +191,7 @@
             file:
             { pkgs, ... }@args:
             let
-              system = pkgs.stdenv.hostPlatform.system;
+              inherit (pkgs.stdenv.hostPlatform) system;
             in
             import file (
               args
