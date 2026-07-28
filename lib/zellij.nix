@@ -134,7 +134,7 @@ let
       timezone ? "",
       withHelpLayout ? true,
       statusBin ? defaultStatusBin,
-      # argv list auto-run in every pane of the Ctrl+T grid tabs (g/y). Defaults
+      # argv list auto-run in every pane of the Ctrl+T grid tabs (q/w/e). Defaults
       # to claude in yolo mode (see defaultGridPaneCommand); pass null or [] to
       # opt out → plain shells.
       gridPaneCommand ? defaultGridPaneCommand,
@@ -184,7 +184,7 @@ let
           ${lib.concatStringsSep "\n" (lib.genList (_: col) rows)}
           }
           }'';
-      # Grid layouts for the Ctrl+T g / y keybinds, generated entirely in Nix:
+      # Grid layouts for the Ctrl+T q / w / e keybinds, generated entirely in Nix:
       # the (already-substituted) default layout's zjstatus topbar template minus
       # its closing brace, then the grid tab, then the layout's closing brace.
       # Keeping the topbar from default.kdl means it never drifts. The tab is
@@ -198,6 +198,9 @@ let
         '';
       grid4Layout = mkGrid 2 2 "grid4";
       grid6Layout = mkGrid 2 3 "grid6";
+      # 4 rows x 2 cols — the tall counterpart of grid6 for the same eight-pane
+      # budget as two grid4 tabs, on screens with more height than width.
+      grid8Layout = mkGrid 4 2 "grid8";
     in
     pkgs.runCommand "nix-env-zellij-config-dir"
       {
@@ -223,6 +226,7 @@ let
         install -m 0644 ${swapLayout}                                     $out/layouts/default.swap.kdl
         install -m 0644 ${grid4Layout}                                    $out/layouts/grid4.kdl
         install -m 0644 ${grid6Layout}                                    $out/layouts/grid6.kdl
+        install -m 0644 ${grid8Layout}                                    $out/layouts/grid8.kdl
         ${if withHelpLayout then "install -m 0644 ${helpLayout} $out/layouts/help.kdl" else ""}
       '';
 
