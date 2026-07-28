@@ -211,6 +211,15 @@
           # consumers `imports = [ nix-env.nixosModules.claude ]` and get the
           # self-updating drip claude (services.claude-code.*).
           claude = nix-claude-drip.nixosModules.default;
+          # …and drip's release cache (`services.claude-code-cache.*`), a
+          # pull-through HTTP cache in front of the release channel so a fleet
+          # pulls each ~262 MiB version across the WAN once instead of once per
+          # machine. SEPARATE from `claude` on purpose, exactly as drip keeps
+          # them separate: this one is for whichever host serves the cache, and
+          # importing it brings an nginx option surface a client machine has no
+          # use for. A client opts in by pointing
+          # `services.claude-code.releaseBase` at the cache's address.
+          claude-cache = nix-claude-drip.nixosModules.cache;
           cli-tools = mkModule ./nixos/cli-tools.nix;
         };
 
