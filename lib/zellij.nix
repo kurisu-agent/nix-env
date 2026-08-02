@@ -134,9 +134,9 @@ let
       timezone ? "",
       withHelpLayout ? true,
       statusBin ? defaultStatusBin,
-      # argv list auto-run in every pane of the Ctrl+T grid tabs (q/w/e). Defaults
-      # to claude in yolo mode (see defaultGridPaneCommand); pass null or [] to
-      # opt out → plain shells.
+      # argv list auto-run in every pane of the grid tab layouts (grid4/6/8).
+      # Defaults to claude in yolo mode (see defaultGridPaneCommand); pass null
+      # or [] to opt out → plain shells.
       gridPaneCommand ? defaultGridPaneCommand,
     }:
     let
@@ -184,7 +184,8 @@ let
           ${lib.concatStringsSep "\n" (lib.genList (_: col) rows)}
           }
           }'';
-      # Grid layouts for the Ctrl+T q / w / e keybinds, generated entirely in Nix:
+      # Grid layouts (grid4 = 2x2, grid6 = 2x3, grid8 = 4x2), launched by name —
+      # `zellij action new-tab --layout grid4` — and generated entirely in Nix:
       # the (already-substituted) default layout's zjstatus topbar template minus
       # its closing brace, then the grid tab, then the layout's closing brace.
       # Keeping the topbar from default.kdl means it never drifts. The tab is
@@ -215,12 +216,7 @@ let
       }
       ''
         mkdir -p $out/layouts $out/themes
-        # config.kdl: bake the absolute layout dir into the Ctrl+T grid keybinds
-        # (the keybind loader needs a resolvable path at config-load time; bare
-        # layout names and a config-relative layout_dir don't reliably resolve).
-        ${pkgs.gnused}/bin/sed "s|__LAYOUTDIR__|$out/layouts|g" \
-          ${repoRoot + "/zellij/config.kdl"} > $out/config.kdl
-        chmod 0644 $out/config.kdl
+        install -m 0644 ${repoRoot + "/zellij/config.kdl"}                $out/config.kdl
         install -m 0644 ${themeKdl}                                       $out/themes/catppuccin_mocha.kdl
         install -m 0644 ${defaultLayout}                                  $out/layouts/default.kdl
         install -m 0644 ${swapLayout}                                     $out/layouts/default.swap.kdl

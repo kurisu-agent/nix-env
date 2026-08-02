@@ -26,13 +26,6 @@ in
       [ -f "$f" ] || { echo "missing: $f" >&2; exit 1; }
     done
     grep -q advanced_mouse_actions config.kdl || { echo "config.kdl missing advanced_mouse_actions" >&2; exit 1; }
-    # Every grid keybind must point at a layout file that exists, with
-    # __LAYOUTDIR__ resolved. A bad path here is silent at config-load
-    # and only shows up as a keypress that does nothing.
-    grep -q __LAYOUTDIR__ config.kdl && { echo "config.kdl has unresolved __LAYOUTDIR__" >&2; exit 1; } || true
-    for g in 4 6 8; do
-      grep -q "layouts/grid$g.kdl" config.kdl || { echo "config.kdl has no keybind for grid$g" >&2; exit 1; }
-    done
     # Pane-count per grid: leaf panes are the lines mkGrid emits for
     # gridPaneCommand (default: a `pane command="sh"` per cell).
     for spec in "grid4 4" "grid6 6" "grid8 8"; do

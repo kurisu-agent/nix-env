@@ -152,8 +152,9 @@ in
       default = zellij-lib.defaultGridPaneCommand;
       example = null;
       description = ''
-        Command (as an argv list) auto-run in every pane of the Ctrl+T grid
-        tabs (`q` = 2x2, `w` = 2x3, `e` = 4 rows x 2 cols). Defaults to the
+        Command (as an argv list) auto-run in every pane of the grid tab
+        layouts (`grid4` = 2x2, `grid6` = 2x3, `grid8` = 4 rows x 2 cols;
+        `zellij action new-tab --layout grid4`). Defaults to the
         `yolo` command (`claude --dangerously-skip-permissions`) so a grid is
         an instant fleet of agents. Each pane runtime-checks the binary and
         falls back to `$SHELL` if it's missing, so hosts without claude get
