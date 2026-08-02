@@ -8,6 +8,11 @@ theme "catppuccin_mocha"
 advanced_mouse_actions true
 
 keybinds {
+    // Ctrl+B is zellij's tmux-compat mode prefix by default. Nobody here uses
+    // that mode, and tools running inside panes (herdr's prefix is Ctrl+B)
+    // need the key to reach them — a bare unbind at this level removes it
+    // from every mode, so it passes through to the focused pane.
+    unbind "Ctrl b"
     normal {
         bind "Alt -" { NextSwapLayout; }
     }
