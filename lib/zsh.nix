@@ -40,6 +40,19 @@ let
 
   autosuggestStyle = "fg=${palette.muted}";
 
+  # zsh ships no ctrl/alt-arrow bindings, so zle matches the `^[[` prefix,
+  # fails, and self-inserts the tail — ctrl+left literally types `;5D`.
+  keyBindings = {
+    "^[[1;5C" = "forward-word";
+    "^[[1;5D" = "backward-word";
+    "^[[1;3C" = "forward-word";
+    "^[[1;3D" = "backward-word";
+  };
+
+  keyBindingsRc = lib.concatStringsSep "\n" (
+    lib.mapAttrsToList (k: v: "bindkey '${k}' ${v}") keyBindings
+  );
+
   # Single source of truth for the eza-backed ls family. Both
   # `mkShellRc` (this file, used by nix-on-droid + the toolkit
   # derivation) and `nixos/zsh.nix` (the NixOS module) consume this
@@ -176,6 +189,8 @@ let
           alias ll='ls -alF'
         fi
 
+        ${keyBindingsRc}
+
         ${extraZshrc}
 
         # Personal flair hook: drop a ~/.zshrc.local for character-specific
@@ -215,6 +230,8 @@ in
     autosuggestStyle
     ezaAliases
     historyOpts
+    keyBindings
+    keyBindingsRc
     mkShellRc
     mkWrappedZsh
     ;
