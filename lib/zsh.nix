@@ -49,9 +49,16 @@ let
     "^[[1;3D" = "backward-word";
   };
 
-  keyBindingsRc = lib.concatStringsSep "\n" (
-    lib.mapAttrsToList (k: v: "bindkey '${k}' ${v}") keyBindings
-  );
+  # zsh's default WORDCHARS counts `-` `.` `/` `=` as part of a word, so
+  # word motion skips whole paths and kebab-case names. `_` stays in, to
+  # keep snake_case identifiers atomic.
+  wordChars = "*?_[]~&;!#$%^(){}<>";
+
+  keyBindingsRc = ''
+    WORDCHARS='${wordChars}'
+
+  ''
+  + lib.concatStringsSep "\n" (lib.mapAttrsToList (k: v: "bindkey '${k}' ${v}") keyBindings);
 
   # Single source of truth for the eza-backed ls family. Both
   # `mkShellRc` (this file, used by nix-on-droid + the toolkit
@@ -232,6 +239,7 @@ in
     historyOpts
     keyBindings
     keyBindingsRc
+    wordChars
     mkShellRc
     mkWrappedZsh
     ;
