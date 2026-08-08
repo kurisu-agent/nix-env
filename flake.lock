@@ -1,17 +1,39 @@
 {
   "nodes": {
+    "gumbo": {
+      "inputs": {
+        "nixpkgs": [
+          "nix-claude-drip",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786119222,
+        "narHash": "sha256-yWivRkEczifnnyHtmehSnhTusJRr5R7GIFHHKcWph0A=",
+        "owner": "kurisu-agent",
+        "repo": "gumbo",
+        "rev": "4934c1ec12601afa7de7c11c5dea1b02156d9df1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kurisu-agent",
+        "repo": "gumbo",
+        "type": "github"
+      }
+    },
     "nix-claude-drip": {
       "inputs": {
+        "gumbo": "gumbo",
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1785250534,
-        "narHash": "sha256-RnOZ7qYqYsK+SGZlgrKR7pE/Xw2J3eX6THPS4Q749ys=",
+        "lastModified": 1786174532,
+        "narHash": "sha256-XblQFYsti603G1gOFC+7HDkXdFercKisuduwdHMgTI4=",
         "owner": "kurisu-agent",
         "repo": "nix-claude-drip",
-        "rev": "25972be30af4c53cee5ab2c6fe1a53a69b38b7fc",
+        "rev": "cebacb4ddcd330ab2b814ad79c4d3588d891d7d2",
         "type": "github"
       },
       "original": {
