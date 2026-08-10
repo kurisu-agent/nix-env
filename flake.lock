@@ -22,19 +22,42 @@
         "type": "github"
       }
     },
+    "herdr": {
+      "inputs": {
+        "nixpkgs": [
+          "nix-claude-drip",
+          "nixpkgs"
+        ],
+        "rust-overlay": "rust-overlay"
+      },
+      "locked": {
+        "lastModified": 1786316128,
+        "narHash": "sha256-pPvzytJrCEYhYq7pg3HjO/Nlnir4qJ0MAgGxYGIUdyc=",
+        "owner": "herdrdev",
+        "repo": "herdr",
+        "rev": "f5067ed829ae5743499916b941b2310c50681f29",
+        "type": "github"
+      },
+      "original": {
+        "owner": "herdrdev",
+        "repo": "herdr",
+        "type": "github"
+      }
+    },
     "nix-claude-drip": {
       "inputs": {
         "gumbo": "gumbo",
+        "herdr": "herdr",
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1786289513,
-        "narHash": "sha256-RrVP8jhLhHp7EzE+xREoNu/JfSXFtWZkdcMbMmX8XWw=",
+        "lastModified": 1786333953,
+        "narHash": "sha256-qrMSxb60s+XnCR8qUnYzvRc0+NUhBAA0ng5WXgOB4Rk=",
         "owner": "kurisu-agent",
         "repo": "nix-claude-drip",
-        "rev": "eeeddae27fcffbbc34155fafee8f8970f2c7ad46",
+        "rev": "ca179e1f2e5381b57180945d11774fa108c425b5",
         "type": "github"
       },
       "original": {
@@ -63,6 +86,28 @@
       "inputs": {
         "nix-claude-drip": "nix-claude-drip",
         "nixpkgs": "nixpkgs"
+      }
+    },
+    "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "nix-claude-drip",
+          "herdr",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1783577481,
+        "narHash": "sha256-EWMxOWrJ031f8f/lrcEmhTRs4npw1/5N3Hcjin846c8=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "4cdea398dc491b082dccdce0fad1ed0b75fa3394",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
       }
     }
   },

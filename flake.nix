@@ -171,6 +171,13 @@
               ]);
             };
 
+          # Re-export drip's pinned herdr, for the same reason `nixosModules.claude`
+          # re-exports drip's module: consumers take the agent-workstation tooling
+          # from nix-env and never pin it themselves. Deliberately NOT in
+          # nix-env-toolkit — herdr is a heavy rust+zig build, and a plain shell
+          # session does not need a workspace manager to come with it.
+          herdr = nix-claude-drip.packages.${system}.herdr;
+
           default = nix-env-lib.zellij.mkConfigDir { };
         }
       );
