@@ -46,12 +46,22 @@ let
   # ctrl+backspace arrives as ^H in terminals that send ^? for plain
   # backspace; the default emacs keymap has ^H as backward-delete-char,
   # so it only ate one character instead of the word.
+  #
+  # home/end: zle knows the app-cursor-mode forms (^[OH / ^[OF) but not
+  # the CSI (^[[H) or vt220 (^[[1~) forms, so the keys work or die
+  # depending on which mode the terminal/multiplexer happens to be in.
   keyBindings = {
     "^[[1;5C" = "forward-word";
     "^[[1;5D" = "backward-word";
     "^[[1;3C" = "forward-word";
     "^[[1;3D" = "backward-word";
     "^H" = "backward-kill-word";
+    "^[[3;5~" = "kill-word";
+    "^[[3;3~" = "kill-word";
+    "^[[H" = "beginning-of-line";
+    "^[[1~" = "beginning-of-line";
+    "^[[F" = "end-of-line";
+    "^[[4~" = "end-of-line";
   };
 
   # zsh's default WORDCHARS counts `-` `.` `/` `=` as part of a word, so
