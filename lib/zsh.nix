@@ -42,11 +42,16 @@ let
 
   # zsh ships no ctrl/alt-arrow bindings, so zle matches the `^[[` prefix,
   # fails, and self-inserts the tail — ctrl+left literally types `;5D`.
+  #
+  # ctrl+backspace arrives as ^H in terminals that send ^? for plain
+  # backspace; the default emacs keymap has ^H as backward-delete-char,
+  # so it only ate one character instead of the word.
   keyBindings = {
     "^[[1;5C" = "forward-word";
     "^[[1;5D" = "backward-word";
     "^[[1;3C" = "forward-word";
     "^[[1;3D" = "backward-word";
+    "^H" = "backward-kill-word";
   };
 
   # zsh's default WORDCHARS counts `-` `.` `/` `=` as part of a word, so
