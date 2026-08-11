@@ -75,11 +75,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786421404,
-        "narHash": "sha256-QxOtZxA44rqCCJeoGqOvnRULEC6qBplVPkq6CG1SaRM=",
+        "lastModified": 1786441508,
+        "narHash": "sha256-8y8ZrXPbY+9gQ6AWuEGvRNnCO1+VW6XAW5L6UbRryp4=",
         "ref": "refs/heads/main",
-        "rev": "2b3c261c890e8fc6c3b48627e9b50fa03926e705",
-        "revCount": 41,
+        "rev": "9580fc8517b45d02fa9d16105fb9df556c854cbf",
+        "revCount": 42,
         "type": "git",
         "url": "https://git.tail6914b3.ts.net/kurisu-agent/nix-claude-drip"
       },
