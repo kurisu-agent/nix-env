@@ -7,7 +7,7 @@
     # integration point and re-exports this flake's lib + module, so
     # consumers get claude through nix-env rather than wiring it directly.
     nix-claude-drip = {
-      url = "git+https://git.tail6914b3.ts.net/kurisu-agent/nix-claude-drip";
+      url = "github:kurisu-agent/nix-claude-drip";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
