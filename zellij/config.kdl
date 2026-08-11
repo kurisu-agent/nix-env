@@ -13,6 +13,10 @@ keybinds {
     // need the key to reach them — a bare unbind at this level removes it
     // from every mode, so it passes through to the focused pane.
     unbind "Ctrl b"
+    // Ctrl+backspace arrives as ^H, which zellij parses as Ctrl+H — its
+    // default SwitchToMode "Move" prefix. Nobody uses Move mode, and the
+    // shell binds ^H to backward-kill-word; let it through.
+    unbind "Ctrl h"
     normal {
         bind "Alt -" { NextSwapLayout; }
     }
