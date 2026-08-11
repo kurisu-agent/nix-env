@@ -52,17 +52,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1786374080,
-        "narHash": "sha256-5yaQybYoVi0pKlbXWgKW2EHsVYLS/B0fKJVzIeiwDVE=",
-        "owner": "kurisu-agent",
-        "repo": "herdr-drip",
-        "rev": "b08005569c4fb14927db62ee1f99bcc45167101e",
-        "type": "github"
+        "lastModified": 1786421331,
+        "narHash": "sha256-YCLlnwh4zr3nMp+IV3B+qBDgUQ/5g1XZLuVSsZBOBhw=",
+        "ref": "refs/heads/main",
+        "rev": "6236e67bbc6ae8f596d5604871981c2f2b73b6b4",
+        "revCount": 28,
+        "type": "git",
+        "url": "https://git.tail6914b3.ts.net/kurisu-agent/herdr-drip"
       },
       "original": {
-        "owner": "kurisu-agent",
-        "repo": "herdr-drip",
-        "type": "github"
+        "type": "git",
+        "url": "https://git.tail6914b3.ts.net/kurisu-agent/herdr-drip"
       }
     },
     "nix-claude-drip": {
@@ -75,17 +75,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1786374255,
-        "narHash": "sha256-tLglSEWruNdROQe/7vJAazmtcvcWEFQ1YVAKjxgoxMc=",
-        "owner": "kurisu-agent",
-        "repo": "nix-claude-drip",
-        "rev": "4c83a416a39de1a9471d92796522bfd8e9d7fd23",
-        "type": "github"
+        "lastModified": 1786421404,
+        "narHash": "sha256-QxOtZxA44rqCCJeoGqOvnRULEC6qBplVPkq6CG1SaRM=",
+        "ref": "refs/heads/main",
+        "rev": "2b3c261c890e8fc6c3b48627e9b50fa03926e705",
+        "revCount": 41,
+        "type": "git",
+        "url": "https://git.tail6914b3.ts.net/kurisu-agent/nix-claude-drip"
       },
       "original": {
-        "owner": "kurisu-agent",
-        "repo": "nix-claude-drip",
-        "type": "github"
+        "type": "git",
+        "url": "https://git.tail6914b3.ts.net/kurisu-agent/nix-claude-drip"
       }
     },
     "nixpkgs": {
