@@ -213,6 +213,16 @@ let
 
         ${keyBindingsRc}
 
+        # A remote app that dies without cleaning up (dropped ssh/mosh, killed
+        # zellij) strands mouse reporting and zellij's kitty keyboard flags in
+        # the LOCAL terminal — every mouse move then types an SGR report at the
+        # prompt. The process that owed us the reset is gone, so do it here.
+        _nix_env_reset_input_modes() {
+          printf '\033[?1000l\033[?1002l\033[?1003l\033[?1006l\033[?1015l\033[<u'
+        }
+        autoload -Uz add-zsh-hook
+        add-zsh-hook precmd _nix_env_reset_input_modes
+
         ${extraZshrc}
 
         # Personal flair hook: drop a ~/.zshrc.local for character-specific
