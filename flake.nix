@@ -217,7 +217,27 @@
           # Re-export drip's NixOS module as nix-env's claude module, so
           # consumers `imports = [ nix-env.nixosModules.claude ]` and get the
           # self-updating drip claude (services.claude-code.*).
-          claude = nix-claude-drip.nixosModules.default;
+          #
+          # It also hands herdr-drip our palette, because this is the first
+          # place downstream of both. herdr-drip generates herdr's theme from a
+          # palette attrset but cannot take nix-env as a flake input — nix-env
+          # depends on nix-claude-drip, which depends on herdr-drip, so the
+          # input would close a cycle — and it therefore vendors a copy of the
+          # rungs as its default. Vendored means drifting: the two copies are
+          # equal today and nothing keeps them so. Setting it here makes
+          # nix-env's palette the one that reaches herdr, so a `paletteOverride`
+          # or a variant switch moves herdr with zellij instead of leaving them
+          # a shade apart.
+          #
+          # mkDefault, so a host that themes herdr itself still just writes
+          # `services.herdr-drip.plugins.theme.palette = ...` and wins, rather
+          # than colliding with a definition it never asked for.
+          claude =
+            { pkgs, lib, ... }:
+            {
+              imports = [ nix-claude-drip.nixosModules.default ];
+              services.herdr-drip.plugins.theme.palette = lib.mkDefault self.lib.${pkgs.stdenv.hostPlatform.system}.palette;
+            };
           # …and drip's release cache (`services.claude-code-cache.*`), a
           # pull-through HTTP cache in front of the release channel so a fleet
           # pulls each ~262 MiB version across the WAN once instead of once per
