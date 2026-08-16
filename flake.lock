@@ -1,5 +1,28 @@
 {
   "nodes": {
+    "beads": {
+      "inputs": {
+        "nixpkgs": [
+          "nix-claude-drip",
+          "herdr-drip",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786765402,
+        "narHash": "sha256-HSZ1z4WaHQDPomW6nNs8iUnld36BuHnOVaODD5mxY00=",
+        "owner": "gastownhall",
+        "repo": "beads",
+        "rev": "6c124203e771433a3550c348771a5b5e27fd3c21",
+        "type": "github"
+      },
+      "original": {
+        "owner": "gastownhall",
+        "ref": "v1.2.2",
+        "repo": "beads",
+        "type": "github"
+      }
+    },
     "gumbo": {
       "inputs": {
         "nixpkgs": [
@@ -45,17 +68,18 @@
     },
     "herdr-drip": {
       "inputs": {
+        "beads": "beads",
         "nixpkgs": [
           "nix-claude-drip",
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1786861742,
-        "narHash": "sha256-4l+QUuWRRPq4x/+9HMS6Oq1ausqyvkuGGYt6vb10MK0=",
+        "lastModified": 1786873115,
+        "narHash": "sha256-gAu0ee4o1nimPP2puU7SyRJy0nRBzCKc27Nj2zCTYas=",
         "owner": "kurisu-agent",
         "repo": "herdr-drip",
-        "rev": "2c74ced2a08a5b828f73d3d592447d52216aacd6",
+        "rev": "9f6f68a48bf1008e2594017912c9ad1b42cdb6c6",
         "type": "github"
       },
       "original": {
@@ -74,11 +98,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786863119,
-        "narHash": "sha256-S89Nd4iW0jTXr4xZ+S81VbJhDwuu9y/uiTVrNbRd4PU=",
+        "lastModified": 1786873134,
+        "narHash": "sha256-DjPORCYvUAaO6F2j8+YGjwkSFICsNRF6/AyCHO2zK+g=",
         "owner": "kurisu-agent",
         "repo": "nix-claude-drip",
-        "rev": "359fdac46bd27e4d6736e49f44cc7fd7a88d7d3a",
+        "rev": "b16da2947e0dbec16bf765cfb0ef311b9ad4ed29",
         "type": "github"
       },
       "original": {
