@@ -34,6 +34,8 @@ GLYPH_MEM=$''     # memory
 GLYPH_NET_RX=$''  # download arrow
 GLYPH_NET_TX=$''  # upload arrow
 
+GLYPH_DISK=$'' # hard disk
+
 palette() {
     case "${1:-}" in
         text)     printf "@pal_text@" ;;
@@ -128,6 +130,18 @@ case "${1:-}" in
         [ "$mem_pct" -ge 95 ] && color="@pal_error@"
         printf "#[fg=%s]%s %s %2d%%" "$color" "$GLYPH_MEM" "$mem_total" "$mem_pct"
         ;;
+    disk)
+        # Available GiB on /. Tiers are absolute because the number is:
+        # warning under 30G (the nix-daemon GC, min-free 15G, is about
+        # to start churning), error under 15G (below the GC floor —
+        # builds are now competing with the collector for space).
+        avail_gb=$(df -Pk / 2>/dev/null | awk 'NR==2{print int($4/1048576)}')
+        avail_gb=${avail_gb:-0}
+        color="@pal_muted@"
+        [ "$avail_gb" -lt 30 ] && color="@pal_warning@"
+        [ "$avail_gb" -lt 15 ] && color="@pal_error@"
+        printf "#[fg=%s]%s %dG" "$color" "$GLYPH_DISK" "$avail_gb"
+        ;;
     network)
         read -r rx1 tx1 < <(awk '!/lo:/ && /:/{rx+=$2; tx+=$10} END{printf "%d %d\n", rx, tx}' /proc/net/dev)
         sleep 1
@@ -142,7 +156,7 @@ case "${1:-}" in
         ;;
     *)
         echo "nix-env-zellij-status: unknown field '${1:-}'" >&2
-        echo "  known: identity user conn_mosh conn_ssh conn_local ip cpu mem network" >&2
+        echo "  known: identity user conn_mosh conn_ssh conn_local ip cpu mem disk network" >&2
         exit 1
         ;;
 esac

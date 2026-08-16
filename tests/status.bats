@@ -174,6 +174,42 @@ JSON
   [ -z "$output" ]
 }
 
+# Stub df so the disk tests are independent of the runner's real disk.
+# $1 = available KiB reported for /.
+stub_df() {
+  mkdir -p "$TMPDIR_LOCAL/bin"
+  cat > "$TMPDIR_LOCAL/bin/df" <<EOF
+#!/usr/bin/env bash
+echo "Filesystem 1024-blocks Used Available Capacity Mounted on"
+echo "/dev/stub 999 999 $1 50% /"
+EOF
+  chmod +x "$TMPDIR_LOCAL/bin/df"
+}
+
+@test "disk: plenty of space renders muted whole-GiB value" {
+  stub_df $(( 52 * 1048576 ))
+  PATH="$TMPDIR_LOCAL/bin:$PATH" run bash "$STATUS_SH" disk
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"${PAL[muted]}"* ]]
+  [[ "$output" == *"52G"* ]]
+}
+
+@test "disk: below 30G renders warning" {
+  stub_df $(( 20 * 1048576 ))
+  PATH="$TMPDIR_LOCAL/bin:$PATH" run bash "$STATUS_SH" disk
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"${PAL[warning]}"* ]]
+  [[ "$output" == *"20G"* ]]
+}
+
+@test "disk: below 15G renders error" {
+  stub_df $(( 9 * 1048576 ))
+  PATH="$TMPDIR_LOCAL/bin:$PATH" run bash "$STATUS_SH" disk
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"${PAL[error]}"* ]]
+  [[ "$output" == *"9G"* ]]
+}
+
 @test "unknown field exits non-zero" {
   run bash "$STATUS_SH" not-a-field
   [ "$status" -ne 0 ]

@@ -28,7 +28,7 @@ layout {
                 color_peach    "@pal_peach@"
 
                 format_left  "{command_identity}"
-                format_center "#[fg=$overlay]{command_ip} #[fg=$surface0]│#[fg=$overlay] {command_cpu} #[fg=$surface0]│#[fg=$overlay] {command_mem} #[fg=$surface0]│#[fg=$overlay] {command_network}"
+                format_center "#[fg=$overlay]{command_ip} #[fg=$surface0]│#[fg=$overlay] {command_cpu} #[fg=$surface0]│#[fg=$overlay] {command_mem} #[fg=$surface0]│#[fg=$overlay] {command_disk} #[fg=$surface0]│#[fg=$overlay] {command_network}"
                 format_right "{tabs} {command_user} #[fg=$overlay]{datetime}#[fg=$overlay]{command_conn_mosh}{command_conn_ssh}{command_conn_local}"
 
                 datetime "#[fg=$overlay]{format}"
@@ -80,6 +80,11 @@ layout {
                 command_mem_format "{stdout}"
                 command_mem_interval "1"
                 command_mem_rendermode "dynamic"
+
+                command_disk_command "__STATUS_CMD__ disk"
+                command_disk_format "{stdout}"
+                command_disk_interval "10"
+                command_disk_rendermode "dynamic"
 
                 command_network_command "__STATUS_CMD__ network"
                 command_network_format "{stdout}"
