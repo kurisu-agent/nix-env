@@ -75,11 +75,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786952547,
-        "narHash": "sha256-1e8ZedfLB4sg8ma7KbIaF+3VuovBbb7is9R/5at3/5Y=",
+        "lastModified": 1786958103,
+        "narHash": "sha256-AMXy+mPuPeUG8DpacfsaDEXv4jnvVT2MJfSM/b2+D2w=",
         "owner": "kurisu-agent",
         "repo": "herdr-drip",
-        "rev": "c145b5869bb76f4e1f9bb7602f75d0a80709fdde",
+        "rev": "f6f71369eea3fd1ed7db4da8da1fe81c6b5b5cbb",
         "type": "github"
       },
       "original": {
@@ -98,11 +98,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786954378,
-        "narHash": "sha256-O1cQ0La4XHZJl7yXw1QeI/d906+kahKxyyzg60nzqEc=",
+        "lastModified": 1786972745,
+        "narHash": "sha256-w1g9jX0ngGp9g1QOHy5xGOGtgkrV1iLqn/CcCfy1c7k=",
         "owner": "kurisu-agent",
         "repo": "nix-claude-drip",
-        "rev": "e655e97f2b7fb6296f8796adf20ad364ec503246",
+        "rev": "d120401c224275cefd4c9757ccb7e95efdba5755",
         "type": "github"
       },
       "original": {
