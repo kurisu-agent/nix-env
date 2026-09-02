@@ -53,15 +53,16 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1786831869,
-        "narHash": "sha256-ALhahxbdgnN8rMvlKmgB5py0etICwyYY75Uz0jLIpM4=",
+        "lastModified": 1787161794,
+        "narHash": "sha256-sEGIN3dLZasaHob3EHscWBCIQHflMQVchYmzgsETDk4=",
         "owner": "herdrdev",
         "repo": "herdr",
-        "rev": "51b7064ef0a02642393bab1d2eea0f4dbd8414d2",
+        "rev": "9eb521456ac0d19d3ab3d9d7cea3cca10baa8a4c",
         "type": "github"
       },
       "original": {
         "owner": "herdrdev",
+        "ref": "v0.8.2",
         "repo": "herdr",
         "type": "github"
       }
@@ -98,11 +99,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1788365874,
-        "narHash": "sha256-IP+rkw3lYSmOUW9x2Kjs8150TWD0pCcUfOOpCUjpceM=",
+        "lastModified": 1788366842,
+        "narHash": "sha256-1/t3CnpYHur9Q492GD+6CJm8btuNbrmdgXHCw1zzGxc=",
         "owner": "kurisu-agent",
         "repo": "nix-claude-drip",
-        "rev": "fd5e6b6a43a08833a4bb541637f81eb39a270d73",
+        "rev": "0432e324f145275e3875c876b28defaa3b318346",
         "type": "github"
       },
       "original": {
