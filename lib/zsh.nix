@@ -140,6 +140,17 @@ let
       file
     ];
     text = ''
+      # Kitty-protocol images are placed over the cells, not stored in them,
+      # so fzf's redraw of the pane leaves the previous picture behind the
+      # next one. Delete every placed image before drawing anything — text
+      # previews included, or a bat pane shows on top of the last image.
+      kitty_ok=0
+      if [ -z "''${ZELLIJ:-}" ] && [ -z "''${MOSH_CONNECTION:-}" ] \
+         && { [ "''${TERM_PROGRAM:-}" = ghostty ] || [ -n "''${KITTY_WINDOW_ID:-}" ] || [ "''${TERM:-}" = xterm-kitty ]; }; then
+        kitty_ok=1
+        printf '\033_Ga=d,d=A\033\134'
+      fi
+
       p="''${realpath:-}"
       if [ -z "$p" ]; then
         printf '%s\n' "''${desc:-''${word:-}}"
@@ -154,10 +165,7 @@ let
       case "$mime" in
         image/*)
           fmt=symbols
-          if [ -z "''${ZELLIJ:-}" ] && [ -z "''${MOSH_CONNECTION:-}" ] \
-             && { [ "''${TERM_PROGRAM:-}" = ghostty ] || [ -n "''${KITTY_WINDOW_ID:-}" ] || [ "''${TERM:-}" = xterm-kitty ]; }; then
-            fmt=kitty
-          fi
+          [ "$kitty_ok" = 1 ] && fmt=kitty
           chafa -f "$fmt" --animate off \
             -s "''${FZF_PREVIEW_COLUMNS:-80}x''${FZF_PREVIEW_LINES:-24}" -- "$p"
           ;;
@@ -198,6 +206,17 @@ let
     zstyle ':fzf-tab:*' switch-group '<' '>'
     zstyle ':fzf-tab:*' fzf-flags --color=${fzfColors} --preview-window=right,50%,border-left,wrap --bind=ctrl-/:toggle-preview
     zstyle ':fzf-tab:complete:*:*' fzf-preview '${previewBin}/bin/nix-env-preview'
+
+    # The pane's last kitty image outlives the selector: fzf redraws the
+    # cells under it, the picture stays. Drop every placed image before each
+    # prompt, only on terminals that can have drawn one.
+    _nix_env_clear_kitty_images() {
+      [[ -z ''${ZELLIJ:-} && -z ''${MOSH_CONNECTION:-} ]] || return 0
+      [[ ''${TERM_PROGRAM:-} == ghostty || -n ''${KITTY_WINDOW_ID:-} || ''${TERM:-} == xterm-kitty ]] || return 0
+      printf '\033_Ga=d,d=A\033\134'
+    }
+    autoload -Uz add-zsh-hook
+    add-zsh-hook precmd _nix_env_clear_kitty_images
   '';
 
   # compinit for rc files that don't get it from the host (mkShellRc; NixOS
