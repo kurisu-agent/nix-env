@@ -88,15 +88,49 @@ let
     '';
   };
 
-  # Bare permissions.kdl ready for `~/.cache/zellij/permissions.kdl`. Both
-  # the wrapped-binary first-run path and the NixOS activation script use
-  # this same artifact so consumers can't diverge out of sync.
+  # Bare permissions.kdl: the grant zjstatus needs, keyed by its absolute
+  # store path. Nothing writes it to a user's cache directly — every
+  # consumer goes through seedPermissionsSnippet below, which is a MERGE.
   permissionsKdl = pkgs.writeText "nix-env-zellij-permissions.kdl" ''
     "${zjstatusWasm}" {
         ChangeApplicationState
         RunCommands
         ReadApplicationState
     }
+  '';
+
+  # Idempotent seed of `~/.cache/zellij/permissions.kdl`. Every consumer —
+  # the wrapped binary on each launch, the NixOS module on each user
+  # activation — runs THIS, and it only ever ADDS: a missing file is created
+  # from permissionsKdl, a file lacking the current wasm path gets our grant
+  # appended, and a file that already has it is left alone. Nothing is
+  # removed: not grants the user gave other plugins, and not grants for
+  # zjstatus builds that are no longer current.
+  #
+  # That last point is why this is a merge and not an `install`. zellij keys
+  # grants by the plugin's absolute path, and a zellij SERVER keeps loading
+  # the layout — so the zjstatus store path — it was started with, across
+  # any number of later rebuilds. A seed that rewrote the file to the
+  # current path alone revoked exactly the grant a long-lived server still
+  # needed, and the topbar in every new tab turned into a consent prompt.
+  # A stale entry costs nothing; a lost one costs the topbar. There is no
+  # situation in which the prompt is the desired outcome, so the invariant
+  # is: every zjstatus path that was ever current stays granted.
+  #
+  # Plain sh over coreutils + grep, so it drops into writeShellApplication
+  # and into a NixOS activation script unchanged.
+  seedPermissionsSnippet = ''
+    cache_dir="''${XDG_CACHE_HOME:-$HOME/.cache}/zellij"
+    perms="$cache_dir/permissions.kdl"
+    if [ ! -f "$perms" ]; then
+      mkdir -p "$cache_dir"
+      install -m 0644 ${permissionsKdl} "$perms"
+    elif ! grep -qF '"${zjstatusWasm}"' "$perms"; then
+      # zellij's own writer is not guaranteed to leave a trailing newline;
+      # never glue our block onto its last line.
+      [ -z "$(tail -c1 "$perms")" ] || echo >> "$perms"
+      cat ${permissionsKdl} >> "$perms"
+    fi
   '';
 
   # status.sh is a template — palette placeholders are resolved at
@@ -226,35 +260,27 @@ let
         ${if withHelpLayout then "install -m 0644 ${helpLayout} $out/layouts/help.kdl" else ""}
       '';
 
-  # Wrapped zellij: defaults ZELLIJ_CONFIG_DIR at our config dir AND keeps
-  # ~/.cache/zellij/permissions.kdl seeded so the zjstatus topbar plugin
-  # loads without an interactive consent prompt — including after a zjstatus
-  # bump changes the wasm store path (grants are keyed by absolute path, so
-  # a first-run-only seed would leave upgraded hosts prompting). --set-default
-  # leaves a user's existing $ZELLIJ_CONFIG_DIR untouched, so a user who
-  # genuinely wants their own zellij setup can still override.
+  # Wrapped zellij: defaults ZELLIJ_CONFIG_DIR at our config dir AND runs
+  # seedPermissionsSnippet on every launch, so the zjstatus topbar loads
+  # without an interactive consent prompt — including right after a zjstatus
+  # bump changes the wasm store path. --set-default leaves a user's existing
+  # $ZELLIJ_CONFIG_DIR untouched, so a user who genuinely wants their own
+  # zellij setup can still override.
   mkWrappedBin =
     {
       configDir ? mkConfigDir { },
     }:
     pkgs.writeShellApplication {
       name = "zellij";
-      runtimeInputs = [ pkgs.coreutils ];
+      runtimeInputs = [
+        pkgs.coreutils
+        pkgs.gnugrep
+      ];
       text = ''
         : "''${ZELLIJ_CONFIG_DIR:=${configDir}}"
         export ZELLIJ_CONFIG_DIR
 
-        cache_dir="''${XDG_CACHE_HOME:-$HOME/.cache}/zellij"
-        perms="$cache_dir/permissions.kdl"
-        if [ ! -f "$perms" ]; then
-          mkdir -p "$cache_dir"
-          install -m 0644 ${permissionsKdl} "$perms"
-        elif ! grep -qF "${zjstatusWasm}" "$perms"; then
-          # New wasm path (zjstatus bump): append our grant, preserving any
-          # entries the user granted to other plugins. Stale entries for old
-          # store paths are harmless.
-          cat ${permissionsKdl} >> "$perms"
-        fi
+        ${seedPermissionsSnippet}
 
         exec ${pkgs.zellij}/bin/zellij "$@"
       '';
@@ -334,6 +360,7 @@ in
     zjstatusVersion
     zjstatusWasm
     permissionsKdl
+    seedPermissionsSnippet
     mkConfigDir
     mkWrappedBin
     conntypeWriteSnippet

@@ -45,6 +45,44 @@ in
     touch $out
   '';
 
+  # The permissions seed MERGES. Three things it must never do: lose a
+  # grant the user gave another plugin, lose a grant for a zjstatus build
+  # that is no longer current (a running server still loads it), or
+  # duplicate its own grant on a second run. The `install -m 0644` it
+  # replaced did the second one on every rebuild, and the symptom — the
+  # topbar replaced by a consent prompt in each new tab — names neither
+  # the file nor the activation that clobbered it.
+  zellij-permissions-seed-merges =
+    let
+      seed = pkgs.writeShellScript "nix-env-zellij-seed-permissions" nix-env-lib.zellij.seedPermissionsSnippet;
+      wasm = nix-env-lib.zellij.zjstatusWasm;
+    in
+    pkgs.runCommand "nix-env-check-zellij-permissions-seed" { } ''
+      export HOME=$TMPDIR/home
+      perms=$HOME/.cache/zellij/permissions.kdl
+
+      # Fresh user: the file appears, holding the current grant.
+      ${seed}
+      grep -qF '"${wasm}"' "$perms" || { echo "fresh seed lacks the current grant" >&2; exit 1; }
+
+      # Existing file: a foreign plugin's grant plus a stale zjstatus grant,
+      # and no trailing newline (zellij's own writer does not promise one).
+      # Both survive, ours is appended, and nothing is glued together.
+      printf '"/nix/store/aaaa-other-plugin.wasm" {\n    ReadApplicationState\n}\n"/nix/store/bbbb-zjstatus-old" {\n    RunCommands\n}' > "$perms"
+      ${seed}
+      grep -qF '"/nix/store/aaaa-other-plugin.wasm"' "$perms" || { echo "foreign grant lost" >&2; exit 1; }
+      grep -qF '"/nix/store/bbbb-zjstatus-old"' "$perms" || { echo "stale zjstatus grant lost" >&2; exit 1; }
+      grep -qF '"${wasm}"' "$perms" || { echo "current grant not appended" >&2; exit 1; }
+      grep -q '^}"' "$perms" && { echo "appended block glued onto the previous line" >&2; exit 1; } || true
+
+      # Idempotent: a second run is a no-op.
+      cp "$perms" "$TMPDIR/before"
+      ${seed}
+      cmp -s "$perms" "$TMPDIR/before" || { echo "second seed run modified the file" >&2; exit 1; }
+      [ "$(grep -cF '"${wasm}"' "$perms")" = 1 ] || { echo "current grant duplicated" >&2; exit 1; }
+      touch $out
+    '';
+
   # The zsh auto-attach snippet must export COLORTERM=truecolor, and must
   # do it INSIDE the remote-session guard.
   #

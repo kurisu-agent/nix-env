@@ -263,10 +263,18 @@ in
     # Pre-grant zjstatus permissions per-user. Runs as the user, so no
     # chown dance is needed (unlike the legacy root-activation pattern
     # that had to mkdir + chown everything afterwards).
-    system.userActivationScripts.nixEnvZellijPermissions.text = ''
-      mkdir -p "$HOME/.cache/zellij"
-      install -m 0644 ${zellij-lib.permissionsKdl} "$HOME/.cache/zellij/permissions.kdl"
-    '';
+    #
+    # A MERGE, the same one the wrapped binary runs — see
+    # seedPermissionsSnippet in lib/zellij.nix. This used to be a bare
+    # `install` of permissionsKdl, which rewrote the file to the CURRENT
+    # zjstatus path alone on every activation. A zellij server outlives
+    # rebuilds and keeps loading the path it started with, so each rebuild
+    # revoked the grant the running server needed, and the topbar in every
+    # new tab became a consent prompt until someone pressed `y`. The module
+    # does not ship the wrapped binary (cfg.package is plain zellij), so
+    # this activation is the ONLY seed on a NixOS host and has to get it
+    # right on its own.
+    system.userActivationScripts.nixEnvZellijPermissions.text = zellij-lib.seedPermissionsSnippet;
 
     system.userActivationScripts.nixEnvZellijIdentity = lib.mkIf (cfg.identity != null) {
       text = ''
