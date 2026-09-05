@@ -219,6 +219,7 @@ in
       lib
       zellij
       palette
+      hexToRgbCsv
       ;
   };
 }

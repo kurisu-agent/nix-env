@@ -144,6 +144,8 @@ in
 
         ${zshLib.keyBindingsRc}
 
+        ${zshLib.completionRc}
+
         # Personal flair hook: drop ~/.zshrc.local for character-specific
         # aliases / overrides without forking the flake.
         [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"

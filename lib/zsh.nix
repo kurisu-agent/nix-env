@@ -16,6 +16,7 @@
   lib,
   zellij,
   palette,
+  hexToRgbCsv,
 }:
 
 let
@@ -74,6 +75,56 @@ let
 
   ''
   + lib.concatStringsSep "\n" (lib.mapAttrsToList (k: v: "bindkey '${k}' ${v}") keyBindings);
+
+  # Tab completion. Stock zsh inserts the common prefix, beeps, and dumps
+  # a bare list — with a dozen `Screenshot-2026-…` files you end up typing
+  # the tail by hand. `menu select` turns the second Tab into a highlighted
+  # menu you cycle with Tab / Shift-Tab / arrows; Enter accepts. LIST_AMBIGUOUS
+  # goes so the first Tab shows the list alongside the inserted prefix and
+  # the second enters the menu, instead of prefix / list / menu over three. The
+  # matcher makes the prefix case-insensitive and lets `scr-9` reach
+  # `Screenshot-2026-09-…` across the `-`/`.`/`_` boundaries.
+  #
+  # Styles only — `compinit` is the caller's job. NixOS's programs.zsh runs
+  # it before interactiveShellInit; mkShellRc below runs its own. complist
+  # is loaded here explicitly so the menuselect keymap exists for bindkey
+  # regardless of that order.
+  #
+  # The list colours are truecolor SGR (38;2 / 48;2) from the palette, not
+  # LS_COLORS — the rc unsets LS_COLORS so eza's theme.yml wins, and there is
+  # nothing else to inherit from. `ma` is the highlighted menu row.
+  completionColors = lib.concatStringsSep ":" [
+    "di=38;2;${hexToRgbCsv palette.directory}"
+    "ln=38;2;${hexToRgbCsv palette.info}"
+    "ex=38;2;${hexToRgbCsv palette.accent}"
+    "ma=48;2;${hexToRgbCsv palette.bg_selection};38;2;${hexToRgbCsv palette.primary}"
+  ];
+
+  completionRc = ''
+    zmodload -i zsh/complist
+    unsetopt LIST_AMBIGUOUS
+    zstyle ':completion:*' menu select
+    zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*'
+    zstyle ':completion:*' group-name ""
+    zstyle ':completion:*' list-dirs-first true
+    zstyle ':completion:*' squeeze-slashes true
+    zstyle ':completion:*' list-colors '${completionColors}'
+    zstyle ':completion:*:descriptions' format '%F{${palette.muted}}%d%f'
+    zstyle ':completion:*:warnings' format '%F{${palette.error}}no matches%f'
+    zstyle ':completion:*' use-cache on
+    zstyle ':completion:*' cache-path "''${XDG_CACHE_HOME:-$HOME/.cache}/zsh/compcache"
+    bindkey -M menuselect '^[[Z' reverse-menu-complete
+  '';
+
+  # compinit for rc files that don't get it from the host (mkShellRc; NixOS
+  # supplies its own). The dump goes under the cache dir rather than $HOME so
+  # a wrapped ZDOTDIR install doesn't litter `~/.zcompdump-*`.
+  compinitRc = ''
+    fpath=("$HOME/.nix-profile/share/zsh/site-functions" $fpath)
+    autoload -Uz compinit
+    mkdir -p "''${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+    compinit -d "''${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump-$ZSH_VERSION"
+  '';
 
   # Single source of truth for the eza-backed ls family. Both
   # `mkShellRc` (this file, used by nix-on-droid + the toolkit
@@ -184,6 +235,9 @@ let
         SAVEHIST=${toString historyOpts.saveSize}
         setopt ${lib.concatStringsSep " " historyOpts.setOptions}
 
+        ${compinitRc}
+        ${completionRc}
+
         # zsh plugins from the user's nix-profile (the toolkit symlinkJoin
         # delivers them). Best-effort: a missing plugin doesn't error.
         for _ne_plugin in \
@@ -264,6 +318,8 @@ in
     historyOpts
     keyBindings
     keyBindingsRc
+    completionRc
+    compinitRc
     wordChars
     mkShellRc
     mkWrappedZsh
