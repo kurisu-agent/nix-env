@@ -131,25 +131,35 @@ in
         eval "$(oh-my-posh init zsh --config ${ompConfig})"
       '';
 
-      interactiveShellInit = ''
-        # eza honours $EZA_CONFIG_DIR for theme.yml; LS_COLORS would override it.
-        unset LS_COLORS EZA_COLORS
-        export EZA_CONFIG_DIR="${ezaConfigDir}"
-      ''
-      + lib.optionalString config.services.zellij.enable ''
+      # fzf-tab has to load after compinit (NixOS runs that before any
+      # interactiveShellInit) and before the widget-wrapping plugins. The
+      # autosuggestions module contributes a plain definition, so mkBefore
+      # is what puts the source line ahead of it; syntax-highlighting is
+      # already mkAfter.
+      interactiveShellInit = lib.mkMerge [
+        (lib.mkBefore zshLib.fzfTabSourceRc)
+        (
+          ''
+            # eza honours $EZA_CONFIG_DIR for theme.yml; LS_COLORS would override it.
+            unset LS_COLORS EZA_COLORS
+            export EZA_CONFIG_DIR="${ezaConfigDir}"
+          ''
+          + lib.optionalString config.services.zellij.enable ''
 
-        ${zellijLib.zshAutoattachSnippet}
-      ''
-      + ''
+            ${zellijLib.zshAutoattachSnippet}
+          ''
+          + ''
 
-        ${zshLib.keyBindingsRc}
+            ${zshLib.keyBindingsRc}
 
-        ${zshLib.completionRc}
+            ${zshLib.completionRc}
 
-        # Personal flair hook: drop ~/.zshrc.local for character-specific
-        # aliases / overrides without forking the flake.
-        [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
-      '';
+            # Personal flair hook: drop ~/.zshrc.local for character-specific
+            # aliases / overrides without forking the flake.
+            [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
+          ''
+        )
+      ];
     };
 
     programs.fzf = lib.mkIf cfg.fzfIntegration {

@@ -78,42 +78,126 @@ let
 
   # Tab completion. Stock zsh inserts the common prefix, beeps, and dumps
   # a bare list — with a dozen `Screenshot-2026-…` files you end up typing
-  # the tail by hand. `menu select` turns the second Tab into a highlighted
-  # menu you cycle with Tab / Shift-Tab / arrows; Enter accepts. LIST_AMBIGUOUS
-  # goes so the first Tab shows the list alongside the inserted prefix and
-  # the second enters the menu, instead of prefix / list / menu over three. The
-  # matcher makes the prefix case-insensitive and lets `scr-9` reach
-  # `Screenshot-2026-09-…` across the `-`/`.`/`_` boundaries.
+  # the tail by hand. fzf-tab swaps the list for an fzf selector: arrows /
+  # Tab move, typing narrows, Enter accepts, `/` accepts a directory and
+  # keeps completing inside it, `<` `>` switch groups (files vs options).
+  # The right-hand pane previews the highlighted item — images through
+  # chafa, text through bat, directories as an eza listing.
   #
-  # Styles only — `compinit` is the caller's job. NixOS's programs.zsh runs
-  # it before interactiveShellInit; mkShellRc below runs its own. complist
-  # is loaded here explicitly so the menuselect keymap exists for bindkey
-  # regardless of that order.
+  # `menu no` is fzf-tab's requirement: zsh's own menu must stay out of the
+  # way so the plugin can capture the unambiguous prefix. The matcher makes
+  # the prefix case-insensitive and lets `scr-9` reach `Screenshot-2026-09-…`
+  # across the `-`/`.`/`_` boundaries. The descriptions format is what
+  # fzf-tab reads to group matches; it ignores escape sequences there, so
+  # the colour lives in the fzf palette flags instead.
+  #
+  # `compinit` is the caller's job — NixOS's programs.zsh runs it before
+  # interactiveShellInit; mkShellRc below runs its own. fzf-tab must load
+  # after it and before the widget-wrapping plugins (autosuggestions,
+  # syntax-highlighting), which is why the NixOS module splices the source
+  # line in with mkBefore.
   #
   # The list colours are truecolor SGR (38;2 / 48;2) from the palette, not
   # LS_COLORS — the rc unsets LS_COLORS so eza's theme.yml wins, and there is
-  # nothing else to inherit from. `ma` is the highlighted menu row.
+  # nothing else to inherit from. fzf-tab's ls-colors shim reads the same
+  # zstyle to tint its candidate list.
   completionColors = lib.concatStringsSep ":" [
     "di=38;2;${hexToRgbCsv palette.directory}"
     "ln=38;2;${hexToRgbCsv palette.info}"
     "ex=38;2;${hexToRgbCsv palette.accent}"
-    "ma=48;2;${hexToRgbCsv palette.bg_selection};38;2;${hexToRgbCsv palette.primary}"
   ];
 
+  fzfColors = lib.concatStringsSep "," [
+    "bg+:${palette.bg_selection}"
+    "fg+:${palette.primary}"
+    "hl:${palette.accent}"
+    "hl+:${palette.accent}"
+    "pointer:${palette.accent}"
+    "marker:${palette.accent}"
+    "spinner:${palette.accent}"
+    "prompt:${palette.info}"
+    "info:${palette.muted}"
+    "header:${palette.muted}"
+    "border:${palette.muted}"
+    "gutter:-1"
+  ];
+
+  # Preview for the fzf-tab pane. fzf-tab exports `realpath` (only for
+  # path completions), `word`, `desc` and `group` into the command's
+  # environment, so the script takes no args. Images go through chafa:
+  # the kitty graphics protocol where the terminal is known to speak it
+  # and nothing in between will eat it (zellij and mosh both drop it),
+  # unicode block art everywhere else. Runtime deps are pinned via
+  # runtimeInputs so the rc can reference the script by store path
+  # instead of hoping bat/chafa are on the user's PATH.
+  previewBin = pkgs.writeShellApplication {
+    name = "nix-env-preview";
+    runtimeInputs = with pkgs; [
+      bat
+      chafa
+      coreutils
+      eza
+      file
+    ];
+    text = ''
+      p="''${realpath:-}"
+      if [ -z "$p" ]; then
+        printf '%s\n' "''${desc:-''${word:-}}"
+        exit 0
+      fi
+      if [ -d "$p" ]; then
+        eza -la --icons --color=always --group-directories-first -- "$p" | head -n 200
+        exit 0
+      fi
+      [ -f "$p" ] || exit 0
+      mime=$(file -Lb --mime-type -- "$p")
+      case "$mime" in
+        image/*)
+          fmt=symbols
+          if [ -z "''${ZELLIJ:-}" ] && [ -z "''${MOSH_CONNECTION:-}" ] \
+             && { [ "''${TERM_PROGRAM:-}" = ghostty ] || [ -n "''${KITTY_WINDOW_ID:-}" ] || [ "''${TERM:-}" = xterm-kitty ]; }; then
+            fmt=kitty
+          fi
+          chafa -f "$fmt" --animate off \
+            -s "''${FZF_PREVIEW_COLUMNS:-80}x''${FZF_PREVIEW_LINES:-24}" -- "$p"
+          ;;
+        text/*|application/json|application/javascript|application/xml|application/toml|application/x-shellscript|inode/x-empty)
+          bat --color=always --style=numbers --line-range=:300 -- "$p"
+          ;;
+        *)
+          file -Lb -- "$p"
+          ;;
+      esac
+    '';
+  };
+
+  fzfTabPlugin = "${pkgs.zsh-fzf-tab}/share/fzf-tab/fzf-tab.plugin.zsh";
+
+  # Source line only — split from the styles so the NixOS module can pin it
+  # ahead of the other plugins with mkBefore while the styles ride along
+  # with the rest of the rc. Order between styles and source doesn't matter.
+  fzfTabSourceRc = ''
+    source ${fzfTabPlugin}
+  '';
+
   completionRc = ''
-    zmodload -i zsh/complist
-    unsetopt LIST_AMBIGUOUS
-    zstyle ':completion:*' menu select
+    zstyle ':completion:*' menu no
     zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*'
     zstyle ':completion:*' group-name ""
     zstyle ':completion:*' list-dirs-first true
     zstyle ':completion:*' squeeze-slashes true
     zstyle ':completion:*' list-colors '${completionColors}'
-    zstyle ':completion:*:descriptions' format '%F{${palette.muted}}%d%f'
+    zstyle ':completion:*:descriptions' format '[%d]'
     zstyle ':completion:*:warnings' format '%F{${palette.error}}no matches%f'
+    zstyle ':completion:*:git-checkout:*' sort false
     zstyle ':completion:*' use-cache on
     zstyle ':completion:*' cache-path "''${XDG_CACHE_HOME:-$HOME/.cache}/zsh/compcache"
-    bindkey -M menuselect '^[[Z' reverse-menu-complete
+
+    zstyle ':fzf-tab:*' fzf-command ${pkgs.fzf}/bin/fzf
+    zstyle ':fzf-tab:*' fzf-min-height 15
+    zstyle ':fzf-tab:*' switch-group '<' '>'
+    zstyle ':fzf-tab:*' fzf-flags --color=${fzfColors} --preview-window=right,50%,border-left,wrap --bind=ctrl-/:toggle-preview
+    zstyle ':fzf-tab:complete:*:*' fzf-preview '${previewBin}/bin/nix-env-preview'
   '';
 
   # compinit for rc files that don't get it from the host (mkShellRc; NixOS
@@ -237,6 +321,7 @@ let
 
         ${compinitRc}
         ${completionRc}
+        ${fzfTabSourceRc}
 
         # zsh plugins from the user's nix-profile (the toolkit symlinkJoin
         # delivers them). Best-effort: a missing plugin doesn't error.
@@ -320,6 +405,8 @@ in
     keyBindingsRc
     completionRc
     compinitRc
+    fzfTabSourceRc
+    previewBin
     wordChars
     mkShellRc
     mkWrappedZsh
